@@ -53,6 +53,46 @@ Wishable is a comprehensive wishlist management platform that allows users to sa
 5. **Access the application**
    Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+## 🌐 Deployment
+
+### Deploying to Vercel
+
+Wishable is optimized for deployment on Vercel. Follow these steps to deploy your own instance:
+
+1. **Fork or Clone the Repository**
+   Ensure you have a copy of the codebase in your GitHub account.
+
+2. **Create a Vercel Account**
+   If you don't have one already, sign up at [vercel.com](https://vercel.com).
+
+3. **Import Your Project**
+   - From the Vercel dashboard, click "Add New" > "Project"
+   - Import your GitHub repository
+   - Configure the project settings:
+     - Framework Preset: Next.js
+     - Build Command: `npm run build`
+     - Output Directory: `.next`
+
+4. **Set Environment Variables**
+   Add the following environment variables in the Vercel project settings:
+   - `MONGODB_URI`: Your MongoDB connection string
+   - `JWT_SECRET`: A strong secret key for JWT authentication
+   - `NODE_ENV`: Set to `production`
+
+5. **Deploy**
+   Click "Deploy" and wait for the build to complete.
+
+6. **Verify Deployment**
+   Once deployed, Vercel will provide you with a URL to access your application.
+
+### Custom Domain Setup
+
+To use your own domain with Wishable:
+
+1. Go to your Vercel project settings
+2. Navigate to the "Domains" section
+3. Add your domain and follow the instructions to configure DNS settings
+
 ## 📱 How to Use Wishable
 
 ### 1. Creating an Account

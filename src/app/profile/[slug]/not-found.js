@@ -15,7 +15,7 @@ export default function ProfileNotFound() {
             <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">User Not Found</h2>
             <div className="border-l-4 border-amber-500 pl-4 py-2 bg-amber-50 dark:bg-amber-900/20 mb-6">
               <p className="text-amber-800 dark:text-amber-300">
-                The profile you were looking for {searchedUsername && <span className="font-mono bg-amber-100 dark:bg-amber-800/30 px-1.5 py-0.5 rounded">"{searchedUsername}"</span>} doesn't exist or may have been removed.
+                The profile you were looking for {searchedUsername && <span className="font-mono bg-amber-100 dark:bg-amber-800/30 px-1.5 py-0.5 rounded">&quot;{searchedUsername}&quot;</span>} doesn&apos;t exist or may have been removed.
               </p>
             </div>
             
