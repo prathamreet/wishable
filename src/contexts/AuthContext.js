@@ -199,6 +199,38 @@ export const AuthProvider = ({ children }) => {
     return fetchUserProfile(user.token);
   };
 
+  const deleteAccount = async () => {
+    if (!user?.token) return { success: false, error: 'Not authenticated' };
+
+    try {
+      const res = await fetch('/api/user/delete', {
+        method: 'DELETE',
+        headers: { 
+          Authorization: `Bearer ${user.token}`,
+          'Content-Type': 'application/json' 
+        }
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        // Clear user data and cookies
+        Cookies.remove('token', { path: '/' });
+        setUser(null);
+        router.push('/');
+        return { success: true };
+      } else {
+        throw new Error(data.error || 'Failed to delete account');
+      }
+    } catch (error) {
+      logger.error('Error deleting account:', error);
+      return { 
+        success: false, 
+        error: error.message || 'An unexpected error occurred' 
+      };
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -207,6 +239,7 @@ export const AuthProvider = ({ children }) => {
       logout, 
       loading,
       refreshUserProfile,
+      deleteAccount,
       isAuthenticated: !!user?.token
     }}>
       {children}
