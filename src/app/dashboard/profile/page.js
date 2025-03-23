@@ -118,6 +118,28 @@ export default function ProfileDashboard() {
       const token = user?.token;
       if (!token) throw new Error('Not authenticated');
 
+      // Check if email changed
+      if (profile.email !== user.email) {
+        // Simple email format validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(profile.email)) {
+          setError('Please enter a valid email address');
+          setSaving(false);
+          return;
+        }
+      }
+
+      // Check if username changed and confirm before proceeding
+      if (profile.username !== user.username) {
+        const confirmChange = window.confirm(
+          'Changing your username will also change your profile URL. Continue?'
+        );
+        if (!confirmChange) {
+          setSaving(false);
+          return;
+        }
+      }
+
       const response = await fetch('/api/user/profile', {
         method: 'PUT',
         headers: {
@@ -129,19 +151,41 @@ export default function ProfileDashboard() {
         body: JSON.stringify(profile)
       });
 
+      const data = await response.json();
+      
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.error || 'Failed to update profile');
       }
 
-      // Refresh the user context
+      // Refresh the user context with updated data
       await refreshUserProfile();
       
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      logger.error('Error updating profile:', err);
-      setError(err.message || 'Failed to update profile. Please try again later.');
+      // Don't log expected errors like username or email conflicts
+      const isExpectedError = 
+        err.message.includes('Username is already taken') || 
+        err.message.includes('URL that conflicts') ||
+        err.message.includes('Email is already registered') ||
+        err.message.includes('Invalid email format');
+        
+      if (!isExpectedError) {
+        logger.error('Error updating profile:', err);
+      }
+      
+      // Provide more specific error message
+      if (err.message.includes('Username is already taken')) {
+        setError('This username is already in use. Please choose a different one.');
+      } else if (err.message.includes('URL that conflicts')) {
+        setError('This username would create a URL that conflicts with another user. Please choose a different one.');
+      } else if (err.message.includes('Email is already registered')) {
+        setError('This email address is already registered to another account. Please use a different email.');
+      } else if (err.message.includes('Invalid email format')) {
+        setError('Please enter a valid email address.');
+      } else {
+        setError(err.message || 'Failed to update profile. Please try again later.');
+      }
     } finally {
       setSaving(false);
     }

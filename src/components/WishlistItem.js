@@ -43,7 +43,7 @@ function formatDate(dateString) {
   });
 }
 
-export default function WishlistItem({ item, onDelete }) {
+export default function WishlistItem({ item, onDelete, isFirst = false }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [imageError, setImageError] = useState(false);
   const siteStyle = getSiteStyle(item.site);
@@ -52,7 +52,13 @@ export default function WishlistItem({ item, onDelete }) {
     if (window.confirm('Are you sure you want to remove this item from your wishlist?')) {
       setIsDeleting(true);
       try {
-        await onDelete(item._id);
+        // Use either _id or clientId, whichever is available
+        const itemId = item._id || item.clientId;
+        if (itemId) {
+          await onDelete(itemId);
+        } else {
+          throw new Error('Item has no valid ID');
+        }
       } finally {
         setIsDeleting(false);
       }
@@ -88,7 +94,7 @@ export default function WishlistItem({ item, onDelete }) {
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               className="object-contain"
               onError={() => setImageError(true)}
-              priority={true}
+              priority={isFirst}
             />
           ) : (
             <div className="flex items-center justify-center h-full text-gray-400">

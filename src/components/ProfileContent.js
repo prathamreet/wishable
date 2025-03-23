@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { SITE_CATEGORIES } from './Wishlist';
 
-function ProfileWishlistItem({ item }) {
+function ProfileWishlistItem({ item, isFirst }) {
   const [imageError, setImageError] = useState(false);
   
   function formatPrice(price) {
@@ -46,7 +46,7 @@ function ProfileWishlistItem({ item }) {
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               className="object-contain"
               onError={() => setImageError(true)}
-              priority={false}
+              priority={isFirst}
             />
           ) : (
             <div className="flex items-center justify-center h-full text-gray-400">
@@ -282,8 +282,12 @@ export default function ProfileContent({ initialUser }) {
             Showing {filteredItems.length} of {items.length} items
           </p>
           <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredItems.map((item) => (
-              <ProfileWishlistItem key={item._id} item={item} />
+            {filteredItems.map((item, index) => (
+              <ProfileWishlistItem 
+                key={item._id || item.clientId || `item-${index}-${item.url?.slice(0, 20)}`} 
+                item={item}
+                isFirst={index === 0} 
+              />
             ))}
           </ul>
         </div>

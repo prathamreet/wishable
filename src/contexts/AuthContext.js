@@ -141,35 +141,45 @@ export const AuthProvider = ({ children }) => {
         body: JSON.stringify({ email, password, username }),
       });
       
-      const data = await res.json();
-      
-      
-      if (res.ok) {
-        // Store token with secure settings
-        Cookies.set('token', data.token, { 
-          expires: 7, 
-          path: '/',
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'Lax'
-        });
-        
-        setUser({ token: data.token });
-        await fetchUserProfile(data.token);
-        
-        // Check if there's a redirect parameter in the URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const redirect = urlParams.get('redirect');
-        
-        if (redirect) {
-          router.push(redirect);
-        } else {
-          router.push(redirectPath);
-        }
-        
-        return { success: true };
-      } else {
-        throw new Error(data.error || 'Signup failed');
+      let data;
+      try {
+        data = await res.json();
+      } catch (parseError) {
+        return { 
+          success: false, 
+          error: 'Invalid server response. Please try again.' 
+        };
       }
+      
+      if (!res.ok) {
+        return { 
+          success: false, 
+          error: data.error || 'Failed to create account' 
+        };
+      }
+      
+      // Store token with secure settings
+      Cookies.set('token', data.token, { 
+        expires: 7, 
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Lax'
+      });
+      
+      setUser({ token: data.token });
+      await fetchUserProfile(data.token);
+      
+      // Check if there's a redirect parameter in the URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirect = urlParams.get('redirect');
+      
+      if (redirect) {
+        router.push(redirect);
+      } else {
+        router.push(redirectPath);
+      }
+      
+      return { success: true };
     } catch (error) {
       return { 
         success: false, 

@@ -49,10 +49,20 @@ export async function POST(req) {
         return NextResponse.json({ error: 'User not found' }, { status: 404 });
       }
       
-      user.wishlist.push({ url, ...details });
+      // Let MongoDB handle the _id field automatically
+      const newItem = { 
+        url, 
+        ...details,
+        clientId: new Date().getTime().toString() // Use for client-side identification only
+      };
+      
+      // Add to wishlist and save
+      user.wishlist.push(newItem);
       await user.save();
       
-      return NextResponse.json({ message: 'Item added', item: { url, ...details } });
+      // Return the saved item with its MongoDB-generated _id
+      const savedItem = user.wishlist[user.wishlist.length - 1];
+      return NextResponse.json({ message: 'Item added', item: savedItem });
     } catch (error) {
       logger.error('Error scraping product:', error);
       return NextResponse.json({ error: error.message || 'Failed to scrape product' }, { status: 500 });

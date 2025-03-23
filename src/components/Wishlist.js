@@ -141,7 +141,7 @@ export default function Wishlist() {
         throw new Error('Failed to delete item');
       }
       
-      setItems(prev => prev.filter(item => item._id !== id));
+      setItems(prev => prev.filter(item => String(item._id) !== String(id)));
     } catch (err) {
       logger.error('Error deleting item:', err);
       setError(err.message);
@@ -268,8 +268,13 @@ export default function Wishlist() {
             Showing {filteredItems.length} of {items.length} items
           </p>
           <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredItems.map((item) => (
-              <WishlistItem key={item._id} item={item} onDelete={handleDelete} />
+            {filteredItems.map((item, index) => (
+              <WishlistItem 
+                key={item._id || item.clientId || `item-${index}-${item.url?.slice(0, 20)}`} 
+                item={item} 
+                onDelete={handleDelete}
+                isFirst={index === 0} 
+              />
             ))}
           </ul>
         </div>
