@@ -11,18 +11,29 @@ const nextConfig = {
       bodySizeLimit: '2mb',
     },
   },
-  // Properly handle API routes
+  // Properly handle API routes with better CORS support
+  async headers() {
+    return [
+      {
+        // Apply these headers to all API routes
+        source: '/api/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Credentials', value: 'true' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET,OPTIONS,PATCH,DELETE,POST,PUT' },
+          { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization' },
+        ],
+      },
+    ];
+  },
+  // Define proper API route handling
   async rewrites() {
-    return {
-      beforeFiles: [
-        // Handle API routes first
-        {
-          source: '/api/:path*',
-          destination: '/api/:path*',
-        },
-      ],
-      fallback: [],
-    };
+    return [
+      {
+        source: '/api/:path*',
+        destination: '/api/:path*',
+      },
+    ];
   },
   images: {
     domains: [

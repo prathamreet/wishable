@@ -100,6 +100,18 @@ export function getApiUrl(path) {
   // In client-side code, use NEXT_PUBLIC_APP_URL as base URL for absolute paths
   // In production (especially on Vercel), this ensures requests go to the correct domain
   const isClient = typeof window !== 'undefined';
+  
+  // For client-side requests in production, use relative URLs to avoid CORS issues
+  // This is especially important for Vercel deployments
+  if (isClient && window.location && 
+      (window.location.hostname.includes('vercel.app') || 
+       process.env.NODE_ENV === 'production')) {
+    // Use relative URLs for API requests when on the same domain
+    // Make sure path starts with '/' and doesn't have double slashes
+    return path.startsWith('/') ? path : `/${path}`;
+  }
+  
+  // Otherwise, use the configured base URL
   let baseUrl = '';
   
   if (isClient) {
@@ -115,29 +127,42 @@ export function getApiUrl(path) {
   // Make sure path starts with '/' and remove duplicate slashes
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   
-  // Only use the baseUrl for absolute paths in client-side code
-  return isClient ? `${baseUrl}${normalizedPath}` : normalizedPath;
+  // Ensure we don't have double slashes between baseUrl and path
+  if (baseUrl.endsWith('/')) {
+    return `${baseUrl}${normalizedPath.substring(1)}`;
+  }
+  
+  return baseUrl ? `${baseUrl}${normalizedPath}` : normalizedPath;
 }
 
 /**
- * Enhanced fetch function with better error handling
+ * Enhanced fetch function with better error handling and retry capability
  * @param {string} path - API endpoint path
  * @param {Object} options - Fetch options
+ * @param {number} retries - Number of retries on failure (default: 1)
  * @returns {Promise<any>} - Response data
  */
-export async function apiFetch(path, options = {}) {
+export async function apiFetch(path, options = {}, retries = 1) {
   const url = getApiUrl(path);
   
   try {
     console.log(`🔄 API Request: ${url}`);
     
-    // Add additional headers for better debugging
+    // Add additional headers for better debugging and CORS support
     const enhancedOptions = {
       ...options,
       headers: {
         ...options.headers,
         'X-Requested-With': 'XMLHttpRequest',
-      }
+        // Ensure content type for POST/PUT requests if not already set
+        ...(
+          (options.method === 'POST' || options.method === 'PUT') && 
+          (!options.headers || !options.headers['Content-Type']) ? 
+          {'Content-Type': 'application/json'} : {}
+        ),
+      },
+      // Ensure credentials are included for same-origin requests (important for cookies)
+      credentials: 'same-origin',
     };
     
     // Add request timeout (15 seconds)
@@ -197,7 +222,28 @@ export async function apiFetch(path, options = {}) {
       const timeoutError = new Error('Request timed out after 15 seconds');
       timeoutError.status = 408;
       timeoutError.url = url;
+      
+      // Try to retry if we still have retries left
+      if (retries > 0) {
+        console.log(`🔄 Retrying request: ${url} (${retries} retries left)`);
+        return apiFetch(path, options, retries - 1);
+      }
+      
       throw timeoutError;
+    }
+    
+    // For network errors like CORS or connection issues, retry if possible
+    if (error.message && (
+        error.message.includes('Failed to fetch') || 
+        error.message.includes('NetworkError') ||
+        error.message.includes('Network request failed'))) {
+      
+      if (retries > 0) {
+        console.log(`🔄 Retrying after network error: ${url} (${retries} retries left)`);
+        // Add slight delay before retry (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, (2 - retries) * 1000));
+        return apiFetch(path, options, retries - 1);
+      }
     }
     
     // If it's already our enhanced error, rethrow it

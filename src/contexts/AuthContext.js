@@ -89,13 +89,13 @@ export const AuthProvider = ({ children }) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
-      });
+      }, 2); // Add a retry attempt for login requests
       
       // Store token with secure settings
       Cookies.set('token', data.token, { 
         expires: 7, 
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        secure: process.env.NODE_ENV === 'production' || window.location.protocol === 'https:',
         sameSite: 'Lax'
       });
       
@@ -114,6 +114,7 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
+      console.error('Login error:', error);
       return { 
         success: false, 
         error: error.message || 'An unexpected error occurred' 
@@ -127,13 +128,13 @@ export const AuthProvider = ({ children }) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, username }),
-      });
+      }, 2); // Add a retry attempt for signup requests
       
       // Store token with secure settings
       Cookies.set('token', data.token, { 
         expires: 7, 
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        secure: process.env.NODE_ENV === 'production' || window.location.protocol === 'https:',
         sameSite: 'Lax'
       });
       
@@ -152,6 +153,7 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
+      console.error('Signup error:', error);
       return { 
         success: false, 
         error: error.message || 'An unexpected error occurred' 
