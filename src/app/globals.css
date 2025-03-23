@@ -25,7 +25,62 @@ body {
     font-family: Arial, Helvetica, sans-serif;
 }
 
-
+/* Base styles for the application */
 body {
-    @apply bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-white;
+    @apply bg-amber-50 text-gray-900 dark:bg-gray-900 dark:text-white;
+}
+
+/* Hero section styles */
+.hero-gradient {
+    @apply bg-gradient-to-r from-indigo-500 to-purple-600;
+}
+
+.hero-pattern {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+/* Card styles */
+.card {
+    @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700 overflow-hidden;
+}
+
+/* Button styles */
+.btn-primary {
+    @apply bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors;
+}
+
+.btn-secondary {
+    @apply bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white px-4 py-2 rounded-lg transition-colors;
+}
+
+/* Accent colors for sections */
+.accent-border {
+    @apply border-l-4 border-indigo-500;
+}
+
+/* Admin section styles */
+.admin-section {
+    @apply bg-gray-50 dark:bg-gray-800/50 p-6 rounded-lg border border-gray-200 dark:border-gray-700;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+    will-change: opacity;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-slide-up {
+    animation: slideUp 0.3s ease-out forwards;
+    will-change: transform, opacity;
 }
