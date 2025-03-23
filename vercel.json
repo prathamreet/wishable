@@ -7,7 +7,11 @@
   "functions": {
     "src/app/api/**/*.js": {
       "memory": 1024,
-      "maxDuration": 10
+      "maxDuration": 30
+    },
+    "src/app/api/auth/*.js": {
+      "memory": 1024,
+      "maxDuration": 60
     }
   },
   "images": {

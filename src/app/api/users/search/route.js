@@ -2,77 +2,65 @@ import { NextResponse } from 'next/server';
 import connectDB from '../../../../lib/db';
 import User from '../../../../models/User';
 import logger from '../../../../lib/logger';
+import { errorResponse, successResponse, cacheOptions } from '../../../../lib/apiUtils';
 
 export const dynamic = 'force-dynamic'; // Do not cache this route
 
 export async function GET(request) {
+  console.time('user-search-execution');
   try {
     const { searchParams } = new URL(request.url);
     const username = searchParams.get('username');
     
     if (!username) {
-      return NextResponse.json({ error: 'Username is required' }, { 
-        status: 400,
-        headers: {
-          'Cache-Control': 'no-store, max-age=0, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      });
+      console.timeEnd('user-search-execution');
+      return errorResponse('Username is required', 400);
     }
     
+    // Connect to DB
     await connectDB();
+    console.timeLog('user-search-execution', 'DB connected');
     
-    // First try exact match
+    // Optimize query to only select necessary fields
+    // First try exact match (most efficient)
     let user = await User.findOne(
       { username: username },
       'username slug'
-    ).lean();
+    ).lean().exec();
     
     // If not found, try case-insensitive match
     if (!user) {
       try {
+        // Only use regex if absolutely necessary 
+        // and keep it efficient with anchored query (^$)
         user = await User.findOne(
           { username: { $regex: new RegExp(`^${username}$`, 'i') } },
           'username slug'
-        ).lean();
+        ).lean().maxTimeMS(3000).exec();
       } catch (regexError) {
         // Handle potential regex errors
         logger.error('Regex search error:', regexError);
       }
     }
     
+    console.timeLog('user-search-execution', 'Search completed');
+    
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { 
-        status: 404,
-        headers: {
-          'Cache-Control': 'no-store, max-age=0, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      });
+      console.timeEnd('user-search-execution');
+      return errorResponse('User not found', 404);
     }
     
-    return NextResponse.json({
-      success: true,
+    // Return minimal data to reduce payload size
+    console.timeEnd('user-search-execution');
+    return successResponse({
       user: {
         username: user.username,
         slug: user.slug
       }
-    }, {
-      headers: {
-        'Cache-Control': 'private, max-age=60, s-maxage=60, stale-while-revalidate=30'  // Short cache for found users
-      }
-    });
+    }, 200, cacheOptions.SHORT); // Cache for a short time (5 minutes)
   } catch (error) {
+    console.timeEnd('user-search-execution');
     logger.error('User search error:', error);
-    return NextResponse.json({ error: 'Server error' }, { 
-      status: 500,
-      headers: {
-        'Cache-Control': 'no-store, max-age=0, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      }
-    });
+    return errorResponse('Server error', 500);
   }
 } 

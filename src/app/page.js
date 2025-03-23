@@ -22,25 +22,71 @@ export default function Home() {
         setIsSearching(true);
         setSearchError('');
         
-        try {
-            const res = await fetch(`/api/users/search?username=${encodeURIComponent(username.trim())}`);
-            const data = await res.json();
-            
-            if (!res.ok) {
-                if (res.status === 404) {
-                    setSearchError(`User "${username.trim()}" not found.`);
+        // Add retry capability for the search
+        let retries = 2;
+        let success = false;
+        
+        while (retries >= 0 && !success) {
+            try {
+                // Set a timeout to avoid hanging forever
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+                
+                const res = await fetch(
+                    `/api/users/search?username=${encodeURIComponent(username.trim())}`,
+                    { signal: controller.signal }
+                );
+                clearTimeout(timeoutId);
+                
+                // Handle text responses (non-JSON errors)
+                const contentType = res.headers.get('content-type');
+                let data;
+                
+                if (contentType && contentType.includes('application/json')) {
+                    data = await res.json();
                 } else {
-                    setSearchError(data.error || 'An error occurred while searching');
+                    // Handle non-JSON response
+                    const text = await res.text();
+                    console.error('Non-JSON response:', text);
+                    throw new Error('Received non-JSON response from server');
                 }
-                setIsSearching(false);
-                return;
+                
+                if (!res.ok) {
+                    if (res.status === 404) {
+                        setSearchError(`User "${username.trim()}" not found.`);
+                    } else {
+                        setSearchError(data.error || 'An error occurred while searching');
+                    }
+                    setIsSearching(false);
+                    return;
+                }
+                
+                // Success - navigate to the user's profile page
+                success = true;
+                router.push(`/profile/${data.user.slug}`);
+            } catch (error) {
+                console.error('Search error:', error);
+                retries--;
+                
+                // If we have retries left, wait a bit and try again
+                if (retries >= 0) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    console.log(`Retrying search... (${retries} attempts left)`);
+                } else {
+                    // We're out of retries
+                    if (error.name === 'AbortError') {
+                        setSearchError('Search request timed out. Please try again.');
+                    } else if (error.message.includes('JSON')) {
+                        setSearchError('Error processing server response. Please try again later.');
+                    } else {
+                        setSearchError('Failed to search for user. Please try again.');
+                    }
+                    setIsSearching(false);
+                }
             }
-            
-            // Navigate to the user's profile page using their slug
-            router.push(`/profile/${data.user.slug}`);
-        } catch (error) {
-            console.error('Search error:', error);
-            setSearchError('Failed to search for user. Please try again.');
+        }
+        
+        if (!success) {
             setIsSearching(false);
         }
     };

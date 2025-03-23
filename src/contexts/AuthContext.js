@@ -85,11 +85,12 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password, redirectPath = '/dashboard') => {
     try {
+      // First try with shorter timeout
       const data = await apiFetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
-      }, 2); // Add a retry attempt for login requests
+      }, 3); // Try 3 retries with increasing timeouts
       
       // Store token with secure settings
       Cookies.set('token', data.token, { 
@@ -99,8 +100,24 @@ export const AuthProvider = ({ children }) => {
         sameSite: 'Lax'
       });
       
-      setUser({ token: data.token });
-      await fetchUserProfile(data.token);
+      // Store the basic user info if available to prevent an additional request
+      if (data.user) {
+        setUser({ 
+          ...data.user, 
+          token: data.token 
+        });
+      } else {
+        setUser({ token: data.token });
+        try {
+          // Try to fetch profile but don't block the login flow if it fails
+          fetchUserProfile(data.token).catch(err => {
+            console.warn('Non-critical error fetching profile after login:', err);
+          });
+        } catch (profileError) {
+          // Ignore profile fetch errors
+          console.warn('Non-critical error fetching profile after login:', profileError);
+        }
+      }
       
       // Check if there's a redirect parameter in the URL
       const urlParams = new URLSearchParams(window.location.search);
@@ -115,6 +132,25 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error('Login error:', error);
+      
+      // Handle specific error cases
+      if (error.status === 401) {
+        return { 
+          success: false, 
+          error: 'Invalid email or password'
+        };
+      } else if (error.status === 429) {
+        return {
+          success: false,
+          error: 'Too many login attempts. Please try again later.'
+        };
+      } else if (error.status === 503 || error.status === 504) {
+        return {
+          success: false,
+          error: 'Server is temporarily unavailable. Please try again in a moment.'
+        };
+      }
+      
       return { 
         success: false, 
         error: error.message || 'An unexpected error occurred' 
@@ -128,7 +164,7 @@ export const AuthProvider = ({ children }) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, username }),
-      }, 2); // Add a retry attempt for signup requests
+      }, 3); // Try 3 retries with increasing timeouts
       
       // Store token with secure settings
       Cookies.set('token', data.token, { 
@@ -138,8 +174,24 @@ export const AuthProvider = ({ children }) => {
         sameSite: 'Lax'
       });
       
-      setUser({ token: data.token });
-      await fetchUserProfile(data.token);
+      // Store the basic user info to prevent an additional request
+      if (data.user) {
+        setUser({
+          ...data.user,
+          token: data.token
+        });
+      } else {
+        setUser({ token: data.token });
+        try {
+          // Try to fetch profile but don't block the signup flow if it fails
+          fetchUserProfile(data.token).catch(err => {
+            console.warn('Non-critical error fetching profile after signup:', err);
+          });
+        } catch (profileError) {
+          // Ignore profile fetch errors
+          console.warn('Non-critical error fetching profile after signup:', profileError);
+        }
+      }
       
       // Check if there's a redirect parameter in the URL
       const urlParams = new URLSearchParams(window.location.search);
@@ -154,6 +206,39 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error('Signup error:', error);
+      
+      // Handle specific error cases
+      if (error.status === 400) {
+        // Handle validation errors
+        if (error.data) {
+          if (error.data.error.includes('email')) {
+            return { 
+              success: false, 
+              error: error.data.error || 'Email is invalid or already in use'
+            };
+          } else if (error.data.error.includes('username')) {
+            return { 
+              success: false, 
+              error: error.data.error || 'Username is invalid or already taken'
+            };
+          } else if (error.data.error.includes('password')) {
+            return { 
+              success: false, 
+              error: error.data.error || 'Password is too weak'
+            };
+          }
+        }
+        return { 
+          success: false, 
+          error: error.data?.error || 'Please check your information and try again'
+        };
+      } else if (error.status === 503 || error.status === 504) {
+        return {
+          success: false,
+          error: 'Server is temporarily unavailable. Please try again in a moment.'
+        };
+      }
+      
       return { 
         success: false, 
         error: error.message || 'An unexpected error occurred' 
