@@ -87,6 +87,7 @@ const siteSpecificSelectors = {
   }
 };
 
+
 function parsePrice(text) {
   if (!text) return null;
   // Match any number format (including those with currency symbols)

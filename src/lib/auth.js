@@ -25,6 +25,7 @@ export function getSession(req) {
   }
 }
 
+
 /**
  * Rotates a JWT token with a new expiration
  * @param {string} token - The JWT token to verify

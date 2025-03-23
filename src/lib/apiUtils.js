@@ -32,6 +32,7 @@ export const cacheOptions = {
     'Cache-Control': 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=600'
   },
   
+  
   /**
    * Public caching with long TTL - use for stable data (1 day)
    */

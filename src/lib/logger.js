@@ -26,6 +26,8 @@ const safeStringify = (obj) => {
       sanitized[field] = '[REDACTED]';
     }
   }
+
+  
   
   try {
     return JSON.stringify(sanitized);
