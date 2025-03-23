@@ -75,7 +75,7 @@ export default function ProfilePage() {
       <div className="max-w-4xl mx-auto mt-6 px-6">
         <div className="flex justify-between items-center mb-6">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            To edit your profile, visit your <Link href="/dashboard/profile" className="text-indigo-600 dark:text-indigo-400 hover:underline">profile dashboard</Link>.
+            To edit your profile, visit your <Link href="/dashboard" className="text-indigo-600 dark:text-indigo-400 hover:underline">dashboard</Link>.
           </p>
         </div>
         

@@ -185,9 +185,7 @@ export default function ProfileDashboard() {
 
         <div className="mb-6 flex justify-between items-center">
           <div className="flex space-x-2">
-            <a href="/profile" className="btn-secondary">
-              View Public Profile
-            </a>
+            {/* View Public Profile link removed */}
           </div>
           
           <div className="flex items-center gap-2">

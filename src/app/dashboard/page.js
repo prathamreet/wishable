@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Wishlist from '../../components/Wishlist';
 import { AuthContext } from '../../contexts/AuthContext';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import Link from 'next/link';
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useContext(AuthContext);
@@ -84,7 +85,15 @@ export default function Dashboard() {
   // Show dashboard content if authenticated
   return (
     <div className="animate-fade-in max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Your Wishlist</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Your Wishlist</h1>
+        <Link href="/profile" className="text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+          </svg>
+          View Profile
+        </Link>
+      </div>
       <Wishlist />
     </div>
   );
