@@ -254,8 +254,8 @@ export default function Wishlist() {
         <div className="text-center py-10 text-gray-500">
           {items.length === 0 ? (
             <>
-              <p className="text-xl mb-2">Your wishlist is empty</p>
-              <p className="text-sm">Add items from your favorite stores using the form above</p>
+              <p className="text-xl mb-2" key="empty-title">Your wishlist is empty</p>
+              <p className="text-sm" key="empty-subtitle">Add items from your favorite stores using the form above</p>
             </>
           ) : (
             <p>No items match your current filters</p>
