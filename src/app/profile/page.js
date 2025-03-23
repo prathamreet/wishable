@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ProfileContent from '../../components/ProfileContent';
+import logger from '../../lib/logger';
 
 export default function ProfilePage() {
   const { user, loading } = useContext(AuthContext);
@@ -37,7 +38,7 @@ export default function ProfilePage() {
         const data = await response.json();
         setUserProfile(data);
       } catch (err) {
-        console.error('Error fetching profile:', err);
+        logger.error('Error fetching profile:', err);
         setError('Failed to load profile. Please try again later.');
       } finally {
         setLoadingProfile(false);

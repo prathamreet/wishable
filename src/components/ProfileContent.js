@@ -154,6 +154,7 @@ export default function ProfileContent({ initialUser }) {
                 alt={initialUser.username} 
                 fill 
                 className="object-cover"
+                priority={true}
               />
             ) : (
               <div className="flex items-center justify-center h-full bg-gradient-to-r from-blue-500 to-purple-500 text-white text-2xl font-bold">

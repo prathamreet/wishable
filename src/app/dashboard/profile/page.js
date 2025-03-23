@@ -5,6 +5,7 @@ import { AuthContext } from '../../../contexts/AuthContext';
 import Image from 'next/image';
 import Link from 'next/link';
 import LoadingSpinner from '../../../components/LoadingSpinner';
+import logger from '../../../lib/logger';
 
 export default function ProfileDashboard() {
   const { user, refreshUserProfile, loading: authLoading } = useContext(AuthContext);
@@ -56,11 +57,10 @@ export default function ProfileDashboard() {
         }
 
         const data = await response.json();
-        console.log("Profile data loaded:", data);
         setProfile(data);
         setError(null);
       } catch (err) {
-        console.error('Error fetching profile:', err);
+        logger.error('Error fetching profile:', err);
         setError('Failed to load profile. Please try again later.');
       } finally {
         setLoading(false);
@@ -140,7 +140,7 @@ export default function ProfileDashboard() {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      console.error('Error updating profile:', err);
+      logger.error('Error updating profile:', err);
       setError(err.message || 'Failed to update profile. Please try again later.');
     } finally {
       setSaving(false);
@@ -248,6 +248,7 @@ export default function ProfileDashboard() {
                           alt="Profile picture" 
                           fill 
                           className="object-cover"
+                          priority={true}
                         />
                       ) : (
                         <div className="flex items-center justify-center h-full bg-indigo-100 dark:bg-indigo-900/20 text-2xl font-bold text-indigo-600 dark:text-indigo-400">

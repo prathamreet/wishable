@@ -2,6 +2,7 @@
 import { createContext, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Cookies from 'js-cookie';
+import logger from '../lib/logger';
 
 export const AuthContext = createContext();
 
@@ -31,7 +32,7 @@ export const AuthProvider = ({ children }) => {
           
           if (!verifyResponse.ok) {
             // Token is invalid or expired
-            console.error('Token verification failed:', await verifyResponse.json());
+            logger.error('Token verification failed:', await verifyResponse.json());
             Cookies.remove('token', { path: '/' });
             setUser(null);
             setLoading(false);
@@ -47,7 +48,7 @@ export const AuthProvider = ({ children }) => {
           }
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
+        logger.error('Auth initialization error:', error);
         Cookies.remove('token', { path: '/' });
         setUser(null);
       } finally {
@@ -83,7 +84,7 @@ export const AuthProvider = ({ children }) => {
       
       return null;
     } catch (error) {
-      console.error('Failed to fetch user profile:', error);
+      logger.error('Failed to fetch user profile:', error);
       return null;
     }
   };

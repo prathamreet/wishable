@@ -88,7 +88,7 @@ export default function WishlistItem({ item, onDelete }) {
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               className="object-contain"
               onError={() => setImageError(true)}
-              priority={false}
+              priority={true}
             />
           ) : (
             <div className="flex items-center justify-center h-full text-gray-400">

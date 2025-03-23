@@ -1,5 +1,7 @@
 import { load } from 'cheerio';
 import axios from 'axios';
+import cheerio from 'cheerio';
+import logger from './logger';
 
 // Site-specific selectors for better accuracy
 const siteSpecificSelectors = {
@@ -239,7 +241,7 @@ export async function scrapeProductDetails(url) {
         }
       }
     } catch (e) {
-      console.error('Failed to parse structured data:', e);
+      logger.error('Failed to parse structured data:', e);
     }
 
     // Get product name

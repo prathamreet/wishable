@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useContext } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import WishlistItem from './WishlistItem';
 import WishlistForm from './WishlistForm';
+import logger from '../lib/logger';
 
 // Site categories for better organization
 export const SITE_CATEGORIES = {
@@ -72,7 +73,7 @@ export default function Wishlist() {
       setItems(data);
       setError(null);
     } catch (err) {
-      console.error('Error fetching wishlist:', err);
+      logger.error('Error fetching wishlist:', err);
       setError(err.message || 'Failed to load wishlist');
     } finally {
       setLoading(false);
@@ -113,7 +114,7 @@ export default function Wishlist() {
       
       return { success: true };
     } catch (err) {
-      console.error('Error adding item:', err);
+      logger.error('Error adding item:', err);
       return { 
         success: false, 
         error: err.message || 'Failed to add item' 
@@ -142,7 +143,7 @@ export default function Wishlist() {
       
       setItems(prev => prev.filter(item => item._id !== id));
     } catch (err) {
-      console.error('Error deleting item:', err);
+      logger.error('Error deleting item:', err);
       setError(err.message);
     }
   };

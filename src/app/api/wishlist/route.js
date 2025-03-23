@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import connectDB from '../../../lib/db';
 import User from '../../../models/User';
 import { getSession } from '../../../lib/auth';
+import logger from '../../../lib/logger';
 
 export async function GET(req) {
   try {
@@ -19,7 +20,7 @@ export async function GET(req) {
     
     return NextResponse.json(user.wishlist);
   } catch (error) {
-    console.error('Error fetching wishlist:', error);
+    logger.error('Error fetching wishlist:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -53,11 +54,11 @@ export async function POST(req) {
       
       return NextResponse.json({ message: 'Item added', item: { url, ...details } });
     } catch (error) {
-      console.error('Error scraping product:', error);
+      logger.error('Error scraping product:', error);
       return NextResponse.json({ error: error.message || 'Failed to scrape product' }, { status: 500 });
     }
   } catch (error) {
-    console.error('Error adding item to wishlist:', error);
+    logger.error('Error adding item to wishlist:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

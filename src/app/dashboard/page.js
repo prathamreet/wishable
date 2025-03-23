@@ -5,6 +5,7 @@ import Wishlist from '../../components/Wishlist';
 import { AuthContext } from '../../contexts/AuthContext';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import Link from 'next/link';
+import logger from '../../lib/logger';
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useContext(AuthContext);
@@ -47,11 +48,11 @@ export default function Dashboard() {
           }
         }
         
-        // Successfully verified access
+        // Successfully verified
         setError(null);
         setLoading(false);
       } catch (err) {
-        console.error('Dashboard access error:', err);
+        logger.error('Dashboard access error:', err);
         setError(err.message || 'Error accessing dashboard. Please try again.');
         setLoading(false);
       }
