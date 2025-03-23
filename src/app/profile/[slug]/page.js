@@ -7,9 +7,12 @@ import LoadingSpinner from '../../../components/LoadingSpinner';
 import logger from '../../../lib/logger';
 
 export async function generateMetadata({ params }) {
+  const resolvedParams = await params;
+  const slug = resolvedParams.slug;
+  
   try {
     await connectDB();
-    const user = await User.findOne({ slug: params.slug }, 'username');
+    const user = await User.findOne({ slug }, 'username');
     
     if (!user) {
       return { 
@@ -32,9 +35,12 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function ProfilePage({ params }) {
+  const resolvedParams = await params;
+  const slug = resolvedParams.slug;
+  
   try {
     await connectDB();
-    const user = await User.findOne({ slug: params.slug }, 'username wishlist profilePicture displayName address contactDetails');
+    const user = await User.findOne({ slug }, 'username wishlist profilePicture displayName address contactDetails');
     
     if (!user) {
       // This will render the not-found.js page in this directory if it exists,
