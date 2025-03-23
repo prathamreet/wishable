@@ -21,8 +21,30 @@ export const AuthProvider = ({ children }) => {
           // Set the initial user state with the token
           setUser({ token });
           
+          // Verify token validity
+          const verifyResponse = await fetch('/api/auth/verify', {
+            headers: { 
+              Authorization: `Bearer ${token}`,
+              'Cache-Control': 'no-store'
+            }
+          });
+          
+          if (!verifyResponse.ok) {
+            // Token is invalid or expired
+            console.error('Token verification failed:', await verifyResponse.json());
+            Cookies.remove('token', { path: '/' });
+            setUser(null);
+            setLoading(false);
+            return;
+          }
+          
           // Fetch full user profile
-          await fetchUserProfile(token);
+          const userData = await fetchUserProfile(token);
+          if (!userData) {
+            // User profile not found
+            Cookies.remove('token', { path: '/' });
+            setUser(null);
+          }
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
@@ -50,7 +72,7 @@ export const AuthProvider = ({ children }) => {
       
       if (res.ok) {
         const userData = await res.json();
-        setUser(prev => ({ ...userData, token }));
+        setUser({ ...userData, token });
         return userData;
       } else if (res.status === 401) {
         // Token expired or invalid

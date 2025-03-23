@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useContext } from 'react';
+import { AuthContext } from '../contexts/AuthContext';
 import WishlistItem from './WishlistItem';
 import WishlistForm from './WishlistForm';
 
@@ -32,6 +33,7 @@ export const SITE_CATEGORIES = {
 };
 
 export default function Wishlist() {
+  const { user } = useContext(AuthContext);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,19 +41,22 @@ export default function Wishlist() {
   const [filterSite, setFilterSite] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchWishlist = useCallback(async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      if (!token) {
+      if (!user || !user.token) {
         setError('Authentication required');
+        setLoading(false);
         return;
       }
 
       const res = await fetch('/api/wishlist', {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: 'no-store'
+        headers: { 
+          Authorization: `Bearer ${user.token}`,
+          'Cache-Control': 'no-store'
+        }
       });
       
       if (!res.ok) {
@@ -59,33 +64,40 @@ export default function Wishlist() {
           setError('Session expired. Please log in again.');
           return;
         }
-        throw new Error('Failed to fetch wishlist');
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to fetch wishlist');
       }
       
       const data = await res.json();
       setItems(data);
       setError(null);
     } catch (err) {
-      setError(err.message);
+      console.error('Error fetching wishlist:', err);
+      setError(err.message || 'Failed to load wishlist');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
-    fetchWishlist();
-  }, [fetchWishlist]);
+    if (user) {
+      fetchWishlist();
+    }
+  }, [fetchWishlist, user]);
 
   const handleAdd = async (url) => {
     try {
       setIsAdding(true);
-      const token = localStorage.getItem('token');
+      if (!user || !user.token) {
+        throw new Error('Authentication required');
+      }
       
       const res = await fetch('/api/wishlist', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}` 
+          Authorization: `Bearer ${user.token}` 
         },
         body: JSON.stringify({ url }),
       });
@@ -98,8 +110,14 @@ export default function Wishlist() {
       const data = await res.json();
       setItems(prev => [...prev, data.item]);
       setError(null);
+      
+      return { success: true };
     } catch (err) {
-      setError(err.message);
+      console.error('Error adding item:', err);
+      return { 
+        success: false, 
+        error: err.message || 'Failed to add item' 
+      };
     } finally {
       setIsAdding(false);
     }
@@ -107,23 +125,30 @@ export default function Wishlist() {
 
   const handleDelete = async (id) => {
     try {
-      const token = localStorage.getItem('token');
+      if (!user || !user.token) {
+        throw new Error('Authentication required');
+      }
       
       const res = await fetch(`/api/wishlist/${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          Authorization: `Bearer ${user.token}`
+        }
       });
       
-      if (!res.ok) throw new Error('Failed to delete item');
+      if (!res.ok) {
+        throw new Error('Failed to delete item');
+      }
       
       setItems(prev => prev.filter(item => item._id !== id));
-      setError(null);
     } catch (err) {
+      console.error('Error deleting item:', err);
       setError(err.message);
     }
   };
 
   const handleRefresh = () => {
+    setRefreshing(true);
     fetchWishlist();
   };
 

@@ -7,7 +7,7 @@ import Link from 'next/link';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 
 export default function ProfileDashboard() {
-  const { user, refreshUserProfile } = useContext(AuthContext);
+  const { user, refreshUserProfile, loading: authLoading } = useContext(AuthContext);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -17,7 +17,13 @@ export default function ProfileDashboard() {
   const [activeTab, setActiveTab] = useState('personal');
 
   useEffect(() => {
-    if (!user && !loading) {
+    // Wait for auth state to be determined
+    if (authLoading) {
+      return;
+    }
+    
+    // If not authenticated, redirect to login
+    if (!user || !user.token) {
       router.replace('/login?redirect=/dashboard/profile');
       return;
     }
@@ -25,9 +31,9 @@ export default function ProfileDashboard() {
     async function fetchProfile() {
       try {
         setLoading(true);
-        const token = user?.token;
-        if (!token) return;
+        const token = user.token;
         
+        // Make API request with proper cache control
         const response = await fetch('/api/user/profile', {
           method: 'GET',
           headers: { 
@@ -39,14 +45,18 @@ export default function ProfileDashboard() {
 
         if (!response.ok) {
           if (response.status === 401) {
-            // Handle token expiration
+            // Handle token expiration - completely clear auth state
+            setError('Your session has expired. Please log in again.');
             router.replace('/login?redirect=/dashboard/profile');
             return;
           }
-          throw new Error('Failed to fetch profile');
+          
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to fetch profile');
         }
 
         const data = await response.json();
+        console.log("Profile data loaded:", data);
         setProfile(data);
         setError(null);
       } catch (err) {
@@ -57,12 +67,12 @@ export default function ProfileDashboard() {
       }
     }
 
-    if (user?.token) {
+    if (user.token) {
       fetchProfile();
     } else {
       setLoading(false);
     }
-  }, [user, router]);
+  }, [user, authLoading, router]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
