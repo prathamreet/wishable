@@ -6,6 +6,7 @@ import { AuthContext } from '../../contexts/AuthContext';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import Link from 'next/link';
 import logger from '../../lib/logger';
+import { apiFetch } from '../../lib/apiUtils';
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useContext(AuthContext);
@@ -31,29 +32,25 @@ export default function Dashboard() {
         }
         
         // Make a test request to verify the token
-        const response = await fetch('/api/auth/verify', {
+        await apiFetch('/api/auth/verify', {
           headers: { 
             Authorization: `Bearer ${user.token}`,
             'Cache-Control': 'no-store'
           }
         });
         
-        if (!response.ok) {
-          // Handle specific error cases
-          if (response.status === 401) {
-            throw new Error('Your session has expired. Please log in again.');
-          } else {
-            const data = await response.json();
-            throw new Error(data.error || 'Failed to verify access');
-          }
-        }
-        
         // Successfully verified
         setError(null);
         setLoading(false);
       } catch (err) {
         logger.error('Dashboard access error:', err);
-        setError(err.message || 'Error accessing dashboard. Please try again.');
+        
+        // Handle specific error cases
+        if (err.status === 401) {
+          setError('Your session has expired. Please log in again.');
+        } else {
+          setError(err.message || 'Error accessing dashboard. Please try again.');
+        }
         setLoading(false);
       }
     };

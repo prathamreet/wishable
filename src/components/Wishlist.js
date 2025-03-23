@@ -4,6 +4,7 @@ import { AuthContext } from '../contexts/AuthContext';
 import WishlistItem from './WishlistItem';
 import WishlistForm from './WishlistForm';
 import logger from '../lib/logger';
+import { apiFetch } from '../lib/apiUtils';
 
 // Site categories for better organization
 export const SITE_CATEGORIES = {
@@ -53,28 +54,22 @@ export default function Wishlist() {
         return;
       }
 
-      const res = await fetch('/api/wishlist', {
+      const data = await apiFetch('/api/wishlist', {
         headers: { 
           Authorization: `Bearer ${user.token}`,
           'Cache-Control': 'no-store'
         }
       });
       
-      if (!res.ok) {
-        if (res.status === 401) {
-          setError('Session expired. Please log in again.');
-          return;
-        }
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'Failed to fetch wishlist');
-      }
-      
-      const data = await res.json();
       setItems(data);
       setError(null);
     } catch (err) {
       logger.error('Error fetching wishlist:', err);
-      setError(err.message || 'Failed to load wishlist');
+      if (err.status === 401) {
+        setError('Session expired. Please log in again.');
+      } else {
+        setError(err.message || 'Failed to load wishlist');
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -94,7 +89,7 @@ export default function Wishlist() {
         throw new Error('Authentication required');
       }
       
-      const res = await fetch('/api/wishlist', {
+      const data = await apiFetch('/api/wishlist', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -103,12 +98,6 @@ export default function Wishlist() {
         body: JSON.stringify({ url }),
       });
       
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to add item');
-      }
-      
-      const data = await res.json();
       setItems(prev => [...prev, data.item]);
       setError(null);
       
@@ -130,16 +119,12 @@ export default function Wishlist() {
         throw new Error('Authentication required');
       }
       
-      const res = await fetch(`/api/wishlist/${id}`, {
+      await apiFetch(`/api/wishlist/${id}`, {
         method: 'DELETE',
         headers: { 
           Authorization: `Bearer ${user.token}`
         }
       });
-      
-      if (!res.ok) {
-        throw new Error('Failed to delete item');
-      }
       
       setItems(prev => prev.filter(item => String(item._id) !== String(id)));
     } catch (err) {

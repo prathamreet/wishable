@@ -3,6 +3,26 @@ const nextConfig = {
   env: {
     MONGODB_URI: process.env.MONGODB_URI,
     JWT_SECRET: process.env.JWT_SECRET,
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || '',
+  },
+  // Enable better app directory support
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
+  },
+  // Properly handle API routes
+  async rewrites() {
+    return {
+      beforeFiles: [
+        // Handle API routes first
+        {
+          source: '/api/:path*',
+          destination: '/api/:path*',
+        },
+      ],
+      fallback: [],
+    };
   },
   images: {
     domains: [

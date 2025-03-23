@@ -3,6 +3,7 @@ import { createContext, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Cookies from 'js-cookie';
 import logger from '../lib/logger';
+import { apiFetch } from '../lib/apiUtils';
 
 export const AuthContext = createContext();
 
@@ -22,27 +23,25 @@ export const AuthProvider = ({ children }) => {
           // Set the initial user state with the token
           setUser({ token });
           
-          // Verify token validity
-          const verifyResponse = await fetch('/api/auth/verify', {
-            headers: { 
-              Authorization: `Bearer ${token}`,
-              'Cache-Control': 'no-store'
+          try {
+            // Verify token validity
+            await apiFetch('/api/auth/verify', {
+              headers: { 
+                Authorization: `Bearer ${token}`,
+                'Cache-Control': 'no-store'
+              }
+            });
+            
+            // Fetch full user profile
+            const userData = await fetchUserProfile(token);
+            if (!userData) {
+              // User profile not found
+              Cookies.remove('token', { path: '/' });
+              setUser(null);
             }
-          });
-          
-          if (!verifyResponse.ok) {
+          } catch (error) {
             // Token is invalid or expired
-            logger.error('Token verification failed:', await verifyResponse.json());
-            Cookies.remove('token', { path: '/' });
-            setUser(null);
-            setLoading(false);
-            return;
-          }
-          
-          // Fetch full user profile
-          const userData = await fetchUserProfile(token);
-          if (!userData) {
-            // User profile not found
+            logger.error('Token verification failed:', error);
             Cookies.remove('token', { path: '/' });
             setUser(null);
           }
@@ -63,7 +62,7 @@ export const AuthProvider = ({ children }) => {
     if (!token) return null;
     
     try {
-      const res = await fetch('/api/user/profile', {
+      const userData = await apiFetch('/api/user/profile', {
         headers: { 
           Authorization: `Bearer ${token}`,
           'Cache-Control': 'no-store',
@@ -71,60 +70,49 @@ export const AuthProvider = ({ children }) => {
         },
       });
       
-      if (res.ok) {
-        const userData = await res.json();
-        setUser({ ...userData, token });
-        return userData;
-      } else if (res.status === 401) {
+      setUser({ ...userData, token });
+      return userData;
+    } catch (error) {
+      logger.error('Failed to fetch user profile:', error);
+      if (error.status === 401) {
         // Token expired or invalid
         Cookies.remove('token', { path: '/' });
         setUser(null);
-        return null;
       }
-      
-      return null;
-    } catch (error) {
-      logger.error('Failed to fetch user profile:', error);
       return null;
     }
   };
 
   const login = async (email, password, redirectPath = '/dashboard') => {
     try {
-      const res = await fetch('/api/auth/login', {
+      const data = await apiFetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
       
-      const data = await res.json();
+      // Store token with secure settings
+      Cookies.set('token', data.token, { 
+        expires: 7, 
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Lax'
+      });
       
-      if (res.ok) {
-        // Store token with secure settings
-        Cookies.set('token', data.token, { 
-          expires: 7, 
-          path: '/',
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'Lax'
-        });
-        
-        setUser({ token: data.token });
-        await fetchUserProfile(data.token);
-        
-        // Check if there's a redirect parameter in the URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const redirect = urlParams.get('redirect');
-        
-        if (redirect) {
-          router.push(redirect);
-        } else {
-          router.push(redirectPath);
-        }
-        
-        return { success: true };
+      setUser({ token: data.token });
+      await fetchUserProfile(data.token);
+      
+      // Check if there's a redirect parameter in the URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirect = urlParams.get('redirect');
+      
+      if (redirect) {
+        router.push(redirect);
       } else {
-        throw new Error(data.error || 'Login failed');
+        router.push(redirectPath);
       }
+      
+      return { success: true };
     } catch (error) {
       return { 
         success: false, 
@@ -135,28 +123,11 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (email, password, username, redirectPath = '/dashboard') => {
     try {
-      const res = await fetch('/api/auth/signup', {
+      const data = await apiFetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, username }),
       });
-      
-      let data;
-      try {
-        data = await res.json();
-      } catch (parseError) {
-        return { 
-          success: false, 
-          error: 'Invalid server response. Please try again.' 
-        };
-      }
-      
-      if (!res.ok) {
-        return { 
-          success: false, 
-          error: data.error || 'Failed to create account' 
-        };
-      }
       
       // Store token with secure settings
       Cookies.set('token', data.token, { 
@@ -203,7 +174,7 @@ export const AuthProvider = ({ children }) => {
     if (!user?.token) return { success: false, error: 'Not authenticated' };
 
     try {
-      const res = await fetch('/api/user/delete', {
+      await apiFetch('/api/user/delete', {
         method: 'DELETE',
         headers: { 
           Authorization: `Bearer ${user.token}`,
@@ -211,17 +182,11 @@ export const AuthProvider = ({ children }) => {
         }
       });
 
-      const data = await res.json();
-
-      if (res.ok) {
-        // Clear user data and cookies
-        Cookies.remove('token', { path: '/' });
-        setUser(null);
-        router.push('/');
-        return { success: true };
-      } else {
-        throw new Error(data.error || 'Failed to delete account');
-      }
+      // Clear user data and cookies
+      Cookies.remove('token', { path: '/' });
+      setUser(null);
+      router.push('/');
+      return { success: true };
     } catch (error) {
       logger.error('Error deleting account:', error);
       return { 

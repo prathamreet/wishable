@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import logger from '../../../lib/logger';
+import { apiFetch } from '../../../lib/apiUtils';
 
 export default function ProfileDashboard() {
   const { user, refreshUserProfile, loading: authLoading, deleteAccount } = useContext(AuthContext);
@@ -38,7 +39,7 @@ export default function ProfileDashboard() {
         const token = user.token;
         
         // Make API request with proper cache control
-        const response = await fetch('/api/user/profile', {
+        const data = await apiFetch('/api/user/profile', {
           method: 'GET',
           headers: { 
             Authorization: `Bearer ${token}`,
@@ -47,23 +48,16 @@ export default function ProfileDashboard() {
           }
         });
 
-        if (!response.ok) {
-          if (response.status === 401) {
-            // Handle token expiration - completely clear auth state
-            setError('Your session has expired. Please log in again.');
-            router.replace('/login?redirect=/dashboard/profile');
-            return;
-          }
-          
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to fetch profile');
-        }
-
-        const data = await response.json();
         setProfile(data);
         setError(null);
       } catch (err) {
         logger.error('Error fetching profile:', err);
+        if (err.status === 401) {
+          // Handle token expiration - completely clear auth state
+          setError('Your session has expired. Please log in again.');
+          router.replace('/login?redirect=/dashboard/profile');
+          return;
+        }
         setError('Failed to load profile. Please try again later.');
       } finally {
         setLoading(false);
@@ -143,7 +137,7 @@ export default function ProfileDashboard() {
         }
       }
 
-      const response = await fetch('/api/user/profile', {
+      const data = await apiFetch('/api/user/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -153,12 +147,6 @@ export default function ProfileDashboard() {
         },
         body: JSON.stringify(profile)
       });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to update profile');
-      }
 
       // Refresh the user context with updated data
       await refreshUserProfile();

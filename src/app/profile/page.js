@@ -7,6 +7,7 @@ import Link from 'next/link';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ProfileContent from '../../components/ProfileContent';
 import logger from '../../lib/logger';
+import { apiFetch } from '../../lib/apiUtils';
 
 export default function ProfilePage() {
   const { user, loading } = useContext(AuthContext);
@@ -27,15 +28,10 @@ export default function ProfilePage() {
         const token = user?.token;
         if (!token) return;
 
-        const response = await fetch('/api/user/profile', {
+        const data = await apiFetch('/api/user/profile', {
           headers: { Authorization: `Bearer ${token}` }
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch profile');
-        }
-
-        const data = await response.json();
         setUserProfile(data);
       } catch (err) {
         logger.error('Error fetching profile:', err);
