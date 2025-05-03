@@ -12,6 +12,7 @@ The Wishable Product Scraper is a robust, flexible system for extracting product
 - **URL validation**: Quickly check if a URL is likely a product page
 - **Detailed status reporting**: Get warnings and status information about the scraping process
 
+
 ## API
 
 ### Main Functions

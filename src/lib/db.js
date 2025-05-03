@@ -8,6 +8,7 @@ if (!cached) {
   cached = global.mongoose = { conn: null, promise: null };
 }
 
+
 /**
  * Connect to MongoDB with connection pooling and caching for better
  * performance in serverless environments like Vercel

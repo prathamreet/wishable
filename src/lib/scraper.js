@@ -175,6 +175,7 @@ const siteSpecificSelectors = {
     image: ['.product-detail-main-image-container img', '.product-image', '.gallery-image']
   },
   
+  
   // Home goods
   'ikea': {
     name: ['.product-pip-header-section h1', '.product-name', '.title'],
