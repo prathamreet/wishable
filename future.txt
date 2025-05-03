@@ -1,1 +1,8 @@
 js alert -> toast notification
+
+
+going to /settings or toher without login. shows error. notfound.js shoul dbe made
+
+
+scraping take some ties. add a state loading so user can now scraping is being done
+who we will know its api faliure or scrapping is doing 

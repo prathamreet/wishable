@@ -127,7 +127,7 @@ export default function GamingFeatures() {
       
       <div className="mt-4 p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-100 dark:border-indigo-800">
         <p className="text-sm text-indigo-700 dark:text-indigo-300">
-          <span className="font-medium">Pro Tip:</span> Add games from any supported platform by copying the URL from the game's store page and pasting it into the "Add to Wishlist" form.
+          <span className="font-medium">Pro Tip:</span> Add games from any supported platform by copying the URL from the game&apos;s store page and pasting it into the &quot;Add to Wishlist&quot; form.
         </p>
       </div>
     </div>

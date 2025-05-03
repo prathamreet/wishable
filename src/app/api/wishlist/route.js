@@ -57,7 +57,9 @@ export async function POST(req) {
       // Configure scraping options
       const scrapingOptions = {
         allowPartialResults: true,
-        timeout: 20000
+        timeout: 30000, // Increased timeout
+        retries: 2,     // Add retry attempts
+        useProxy: false // Not using proxy for now, but could be enabled in the future
       };
       
       // Attempt to scrape product details
@@ -101,6 +103,25 @@ export async function POST(req) {
       }, 201);
     } catch (error) {
       logger.error('Error scraping product:', error);
+      
+      // Check for rate limiting or blocking errors
+      if (error.isAxiosError && error.response && (error.response.status === 429 || error.response.status === 529)) {
+        return errorResponse(
+          'This website is currently blocking our automatic product detection. ' +
+          'Please try again later or provide manual details.', 
+          429
+        );
+      } else if (error.message && (
+          error.message.includes('Rate limited') || 
+          error.message.includes('Access denied') ||
+          error.message.includes('HTTP 529')
+      )) {
+        return errorResponse(
+          'This website is currently blocking our automatic product detection. ' +
+          'Please try again later or provide manual details.', 
+          429
+        );
+      }
       
       // If the user provided manual details, we can still add the item
       // even if scraping failed completely

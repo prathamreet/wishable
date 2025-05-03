@@ -149,7 +149,7 @@ async function fetchAPI(endpoint, options = {}, useAuth = true, allowRefresh = t
       // For validation errors, don't log as errors
       if (response.status === 400) {
         console.info(`Validation issue: ${data?.error || 'Bad request'}`);
-      } else if (response.status === 429) {
+      } else if (response.status === 429 || response.status === 529) {
         console.warn(`Rate limited: ${data?.error || 'Too many requests'}`);
       } else {
         console.error(`API Error [${response.status}]:`, data || 'No response data');
@@ -167,6 +167,25 @@ async function fetchAPI(endpoint, options = {}, useAuth = true, allowRefresh = t
   } catch (error) {
     // If it's already our enhanced error, rethrow it
     if (error.status) throw error;
+
+    // Handle Axios errors that might be passed through
+    if (error.isAxiosError && error.response) {
+      const status = error.response.status;
+      let message = error.message;
+      
+      // Provide better messages for common status codes
+      if (status === 429 || status === 529) {
+        message = 'Rate limited by the website. Please try again later.';
+      } else if (status === 403) {
+        message = 'Access denied by the website. The site might be blocking our requests.';
+      }
+      
+      console.warn(`Axios Error (HTTP ${status}):`, message);
+      const enhancedError = new Error(message);
+      enhancedError.status = status;
+      enhancedError.originalError = error;
+      throw enhancedError;
+    }
 
     // Otherwise create a new detailed error
     console.error(`Fetch Error:`, error);

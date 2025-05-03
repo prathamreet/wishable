@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Image from 'next/image';
 import { SITE_CATEGORIES } from '../lib/siteCategories';
 
 export default function SupportedSites() {
@@ -44,15 +45,19 @@ export default function SupportedSites() {
             key={key}
             className="bg-gray-50 dark:bg-gray-700 p-2 rounded flex items-center gap-2"
           >
-            <div className="w-6 h-6 flex-shrink-0 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden">
-              <img 
+            <div className="w-6 h-6 flex-shrink-0 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden relative">
+              <Image 
                 src={`https://www.google.com/s2/favicons?domain=${key}.com&sz=64`} 
-                alt=""
-                className="w-full h-full object-cover"
+                alt={`${name} icon`}
+                fill
+                sizes="24px"
+                className="object-cover"
                 onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23999'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z'/%3E%3C/svg%3E";
+                  // Use a fallback for error handling
+                  const fallbackSrc = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23999'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z'/%3E%3C/svg%3E";
+                  e.target.src = fallbackSrc;
                 }}
+                unoptimized // For external images
               />
             </div>
             <span className="text-sm truncate">{name}</span>

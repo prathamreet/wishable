@@ -6,10 +6,10 @@ import { withRateLimit, rateLimits } from '../../../lib/rateLimit';
 export const dynamic = 'force-dynamic'; // Ensure route is not cached
 
 /**
- * POST - Scrape product details from a URL without saving to wishlist
+ * Handler for scraping product details from a URL without saving to wishlist
  * This endpoint allows the frontend to preview product details before adding to wishlist
  */
-async function POST(req) {
+async function handleScrapeRequest(req) {
   try {
     const session = await getSession(req);
     
@@ -58,10 +58,10 @@ async function POST(req) {
 }
 
 /**
- * POST - Batch scrape multiple URLs
+ * Handler for batch scraping multiple URLs
  * This endpoint allows the frontend to scrape multiple URLs at once
  */
-async function POST_batch(req) {
+async function handleBatchScrapeRequest(req) {
   try {
     const session = await getSession(req);
     
@@ -117,9 +117,9 @@ const handler = async (req) => {
   // Check if it's a batch request
   const url = new URL(req.url);
   if (url.searchParams.get('batch') === 'true') {
-    return POST_batch(req);
+    return handleBatchScrapeRequest(req);
   }
-  return POST(req);
+  return handleScrapeRequest(req);
 };
 
 // Apply stricter rate limits for scraping endpoints

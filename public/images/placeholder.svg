@@ -1,0 +1,7 @@
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#f0f0f0"/>
+  <path d="M160 110 L240 110 L240 190 L160 190 Z" fill="#e0e0e0"/>
+  <path d="M200 80 L280 80 L280 160 L200 160 Z" fill="#d0d0d0"/>
+  <path d="M120 140 L200 140 L200 220 L120 220 Z" fill="#d0d0d0"/>
+  <text x="200" y="160" font-family="Arial" font-size="24" text-anchor="middle" fill="#a0a0a0">Image</text>
+</svg>

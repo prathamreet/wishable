@@ -46,8 +46,23 @@ export default function WishlistForm({ onAdd, isLoading }) {
     } catch (err) {
       if (err instanceof TypeError) {
         setError('Please enter a valid URL');
+      } else if (err.message && (
+          err.message.includes('Rate limited') || 
+          err.message.includes('HTTP 529') ||
+          (err.status && (err.status === 429 || err.status === 529))
+      )) {
+        setError('This website is currently blocking our automatic product detection. Please try again later or provide manual details.');
+      } else if (err.message && (
+          err.message.includes('Access denied') || 
+          (err.status && err.status === 403)
+      )) {
+        setError('This website is blocking access. Please try a different product or provide manual details.');
+      } else if (err.message && err.message.includes('Server error')) {
+        setError('The website is experiencing issues. Please try again later.');
+      } else if (err.message && err.message.includes('timed out')) {
+        setError('The request timed out. The website might be slow or blocking our requests.');
       } else {
-        setError(err.message);
+        setError(err.message || 'An error occurred while adding the item');
       }
     }
   };

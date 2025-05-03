@@ -99,7 +99,7 @@ export default function Dashboard() {
       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow-md p-6 mt-8">
         <h2 className="text-xl font-bold mb-2">New: Enhanced Gaming Support!</h2>
         <p className="mb-3">
-          We've added support for all major gaming platforms. Now you can track games from Steam, Epic Games, GOG, 
+          We&apos;ve added support for all major gaming platforms. Now you can track games from Steam, Epic Games, GOG, 
           PlayStation Store, Xbox Store, Nintendo eShop, and many more!
         </p>
         <div className="flex flex-wrap gap-2 mt-3">

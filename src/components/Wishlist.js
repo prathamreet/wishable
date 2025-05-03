@@ -77,17 +77,37 @@ export default function Wishlist() {
       if (data && data.item) {
         setItems(prev => [...(Array.isArray(prev) ? prev : []), data.item]);
         setError(null);
+        setIsAdding(false);
+        return { success: true };
       } else {
         throw new Error('Failed to add item: Invalid response');
       }
-      
-      return { success: true };
     } catch (err) {
       logger.error('Error adding item:', err);
-      return { 
-        success: false, 
-        error: err.message || 'Failed to add item' 
-      };
+      
+      // Provide more user-friendly error messages for specific error types
+      let errorMessage = err.message || 'Failed to add item';
+      
+      // Check for rate limiting errors
+      if (err.status === 429 || err.status === 529 || 
+          (errorMessage && errorMessage.includes('Rate limited'))) {
+        errorMessage = 'This website is currently blocking our automatic product detection. ' +
+                      'Please try again later or provide manual details.';
+      } else if (errorMessage.includes('HTTP 529')) {
+        errorMessage = 'This website is currently blocking our automatic product detection. ' +
+                      'Please try again later or provide manual details.';
+      }
+      
+      // Make sure we set isAdding back to false
+      setIsAdding(false);
+      
+      // Create a new error with the improved message
+      const enhancedError = new Error(errorMessage);
+      // Preserve the original status code if available
+      if (err.status) enhancedError.status = err.status;
+      
+      // Throw the enhanced error to be caught by the form component
+      throw enhancedError;
     } finally {
       setIsAdding(false);
     }

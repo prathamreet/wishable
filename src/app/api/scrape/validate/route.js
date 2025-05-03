@@ -6,10 +6,10 @@ import { withRateLimit } from '../../../../lib/rateLimit';
 export const dynamic = 'force-dynamic'; // Ensure route is not cached
 
 /**
- * POST - Validate if a URL is likely a product page
+ * Handler to validate if a URL is likely a product page
  * This is a lightweight endpoint that doesn't actually scrape the page
  */
-async function POST(req) {
+async function handleValidateRequest(req) {
   try {
     const session = await getSession(req);
     
@@ -62,7 +62,7 @@ async function POST(req) {
 }
 
 // Apply rate limiting to the handler
-export const POST = withRateLimit(POST, {
+export const POST = withRateLimit(handleValidateRequest, {
   limit: 30,
   windowMs: 60 * 1000, // 1 minute
 });

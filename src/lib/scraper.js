@@ -298,7 +298,8 @@ export async function scrapeProductDetails(url, options = {}) {
   const {
     allowPartialResults = true,
     useProxy = false,
-    timeout = 20000
+    timeout = 20000,
+    retries = 1
   } = options;
 
   // Validate URL
@@ -324,20 +325,136 @@ export async function scrapeProductDetails(url, options = {}) {
       warnings.push('Using generic selectors for this website. Results may be less accurate.');
     }
 
-    // Fetch the page with appropriate headers
-    const response = await axios.get(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache',
-        'Referer': 'https://www.google.com/' // Add referer to reduce blocking
-      },
-      timeout: timeout,
-      // Don't throw on non-200 status codes
-      validateStatus: status => status >= 200 && status < 500
-    });
+    // Implement retry logic
+    let lastError = null;
+    let response = null;
+    
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        if (attempt > 0) {
+          // Add exponential backoff between retries
+          const backoffTime = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+          logger.info(`Retry attempt ${attempt}/${retries} for ${url} after ${backoffTime}ms`);
+          await new Promise(resolve => setTimeout(resolve, backoffTime));
+        }
+        
+        // Fetch the page with appropriate headers
+        // Add a random delay before making the request to reduce the chance of being rate-limited
+        const randomDelay = Math.floor(Math.random() * 2000) + 1000; // Random delay between 1-3 seconds
+        await new Promise(resolve => setTimeout(resolve, randomDelay));
+        
+        // Randomize user agent to appear more like a regular browser
+        const userAgents = [
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Safari/605.1.15',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:90.0) Gecko/20100101 Firefox/90.0',
+          'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36'
+        ];
+        const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
+        
+        response = await axios.get(url, {
+          headers: {
+            'User-Agent': randomUserAgent,
+            'Accept': 'text/html,application/xhtml+xml,application/xml',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
+            'Referer': 'https://www.google.com/', // Add referer to reduce blocking
+            'Connection': 'keep-alive'
+          },
+          timeout: timeout,
+          // Allow all status codes so we can handle them in our own logic
+          validateStatus: () => true
+        });
+        
+        // Check the response status
+        if (response.status === 200) {
+          // If we got a successful response, break out of the retry loop
+          break;
+        } else if (response.status === 429 || response.status === 529) {
+          logger.warn(`Rate limited (HTTP ${response.status}) on attempt ${attempt}/${retries}. Will retry.`);
+          lastError = new Error('Rate limited by the website. Please try again later.');
+          // Continue to next retry attempt
+          continue;
+        } else if (response.status === 403) {
+          logger.warn(`Access denied (HTTP ${response.status}) on attempt ${attempt}/${retries}. Will retry.`);
+          lastError = new Error('Access denied by the website. The site might be blocking our requests.');
+          // Continue to next retry attempt
+          continue;
+        } else if (response.status >= 500) {
+          logger.warn(`Server error (HTTP ${response.status}) on attempt ${attempt}/${retries}. Will retry.`);
+          lastError = new Error(`Server error (HTTP ${response.status}). The website might be experiencing issues.`);
+          // Continue to next retry attempt
+          continue;
+        } else if (response.status === 404) {
+          // Don't retry for 404 - the product doesn't exist
+          throw new Error('Product not found. The URL might be invalid or the product might have been removed.');
+        } else {
+          // Don't retry for other status codes
+          throw new Error(`Failed to fetch page: HTTP ${response.status}`);
+        }
+      } catch (err) {
+        // Handle Axios errors specifically
+        if (err.isAxiosError) {
+          // If it's a response error with status code
+          if (err.response) {
+            const status = err.response.status;
+            
+            if (status === 429 || status === 529) {
+              logger.warn(`Rate limited (HTTP ${status}) on attempt ${attempt}/${retries}. Will retry.`);
+              lastError = new Error(`Rate limited by the website. Please try again later.`);
+            } else if (status === 403) {
+              logger.warn(`Access denied (HTTP ${status}) on attempt ${attempt}/${retries}. Will retry.`);
+              lastError = new Error(`Access denied by the website. The site might be blocking our requests.`);
+            } else if (status >= 500) {
+              logger.warn(`Server error (HTTP ${status}) on attempt ${attempt}/${retries}. Will retry.`);
+              lastError = new Error(`Server error (HTTP ${status}). The website might be experiencing issues.`);
+            } else if (status === 404) {
+              // Don't retry for 404
+              throw new Error('Product not found. The URL might be invalid or the product might have been removed.');
+            } else {
+              // Don't retry for other status codes
+              throw new Error(`Failed to fetch page: HTTP ${status}`);
+            }
+          } else if (err.code === 'ECONNABORTED') {
+            logger.warn(`Request timeout on attempt ${attempt}/${retries}. Will retry.`);
+            lastError = new Error('Request timed out. The website might be slow or blocking our requests.');
+          } else if (err.code === 'ENOTFOUND') {
+            // Don't retry for invalid domains
+            throw new Error('Domain not found. Please check the URL and try again.');
+          } else {
+            // For other Axios errors, log and retry
+            logger.warn(`Axios error on attempt ${attempt}/${retries}: ${err.message}`);
+            lastError = err;
+          }
+        } else {
+          // For non-Axios errors
+          lastError = err;
+        }
+        
+        // If it's the last attempt, we'll throw the error after the loop
+        if (attempt === retries) {
+          // If it's an Axios error, create a more user-friendly error
+          if (err.isAxiosError && err.response) {
+            const status = err.response.status;
+            if (status === 429 || status === 529) {
+              throw new Error('Rate limited by the website. Please try again later.');
+            } else if (status === 403) {
+              throw new Error('Access denied by the website. The site might be blocking our requests.');
+            } else if (status >= 500) {
+              throw new Error(`Server error (HTTP ${status}). The website might be experiencing issues.`);
+            }
+          }
+          throw lastError || err;
+        }
+        // Otherwise continue to the next retry attempt
+      }
+    }
+    
+    // If we've exhausted all retries and still have an error, throw it
+    if (lastError && (!response || response.status !== 200)) {
+      throw lastError;
+    }
 
     // Check for non-200 status codes
     if (response.status !== 200) {
@@ -759,17 +876,7 @@ export async function scrapeProductDetails(url, options = {}) {
     };
   } catch (error) {
     // Handle specific error cases
-    if (error.response) {
-      const status = error.response.status;
-      if (status === 403) {
-        throw new Error('Access denied by the website. The site might be blocking our requests.');
-      } else if (status === 404) {
-        throw new Error('Product not found. The URL might be invalid or the product might have been removed.');
-      } else if (status === 429) {
-        throw new Error('Rate limited by the website. Please try again later.');
-      }
-      throw new Error(`Failed to fetch page: HTTP ${status}`);
-    } else if (error.code === 'ECONNABORTED') {
+    if (error.code === 'ECONNABORTED') {
       throw new Error('Request timed out. The website might be slow or blocking our requests.');
     } else if (error.code === 'ENOTFOUND') {
       throw new Error('Domain not found. Please check the URL and try again.');
