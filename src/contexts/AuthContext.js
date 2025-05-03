@@ -3,7 +3,7 @@ import { createContext, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Cookies from 'js-cookie';
 import logger from '../lib/logger';
-import { apiFetch } from '../lib/apiUtils';
+import { auth, user as userApi, setAuthTokens } from '../lib/apiClient';
 
 export const AuthContext = createContext();
 
@@ -19,36 +19,43 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       try {
         const token = Cookies.get('token');
+        const refreshToken = Cookies.get('refreshToken');
+        
         if (token) {
+          // Set the tokens for the API client
+          setAuthTokens({ 
+            token, 
+            refreshToken,
+            expiresIn: 30 * 24 * 60 * 60 // 30 days in seconds
+          });
+          
           // Set the initial user state with the token
           setUser({ token });
           
           try {
             // Verify token validity
-            await apiFetch('/api/auth/verify', {
-              headers: { 
-                Authorization: `Bearer ${token}`,
-                'Cache-Control': 'no-store'
-              }
-            });
+            await auth.verify();
             
             // Fetch full user profile
-            const userData = await fetchUserProfile(token);
+            const userData = await fetchUserProfile();
             if (!userData) {
               // User profile not found
               Cookies.remove('token', { path: '/' });
+              Cookies.remove('refreshToken', { path: '/' });
               setUser(null);
             }
           } catch (error) {
             // Token is invalid or expired
             logger.error('Token verification failed:', error);
             Cookies.remove('token', { path: '/' });
+            Cookies.remove('refreshToken', { path: '/' });
             setUser(null);
           }
         }
       } catch (error) {
         logger.error('Auth initialization error:', error);
         Cookies.remove('token', { path: '/' });
+        Cookies.remove('refreshToken', { path: '/' });
         setUser(null);
       } finally {
         setLoading(false);
@@ -58,25 +65,22 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   }, []);
 
-  const fetchUserProfile = async (token) => {
-    if (!token) return null;
-    
+  const fetchUserProfile = async () => {
     try {
-      const userData = await apiFetch('/api/user/profile', {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Cache-Control': 'no-store',
-          'Pragma': 'no-cache'
-        },
-      });
+      // Use our simplified userApi.getProfile function
+      const userData = await userApi.getProfile();
       
-      setUser({ ...userData, token });
+      if (userData) {
+        const token = Cookies.get('token');
+        setUser({ ...userData, token });
+      }
       return userData;
     } catch (error) {
       logger.error('Failed to fetch user profile:', error);
       if (error.status === 401) {
         // Token expired or invalid
         Cookies.remove('token', { path: '/' });
+        Cookies.remove('refreshToken', { path: '/' });
         setUser(null);
       }
       return null;
@@ -85,20 +89,25 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password, redirectPath = '/dashboard') => {
     try {
-      // First try with shorter timeout
-      const data = await apiFetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      }, 3); // Try 3 retries with increasing timeouts
+      // Use our simplified auth.login function
+      const data = await auth.login(email, password);
       
-      // Store token with secure settings
+      // Store tokens with secure settings
       Cookies.set('token', data.token, { 
-        expires: 7, 
+        expires: 30, // 30 days
         path: '/',
         secure: process.env.NODE_ENV === 'production' || window.location.protocol === 'https:',
         sameSite: 'Lax'
       });
+      
+      if (data.refreshToken) {
+        Cookies.set('refreshToken', data.refreshToken, { 
+          expires: 90, // 90 days
+          path: '/',
+          secure: process.env.NODE_ENV === 'production' || window.location.protocol === 'https:',
+          sameSite: 'Lax'
+        });
+      }
       
       // Store the basic user info if available to prevent an additional request
       if (data.user) {
@@ -110,7 +119,7 @@ export const AuthProvider = ({ children }) => {
         setUser({ token: data.token });
         try {
           // Try to fetch profile but don't block the login flow if it fails
-          fetchUserProfile(data.token).catch(err => {
+          fetchUserProfile().catch(err => {
             console.warn('Non-critical error fetching profile after login:', err);
           });
         } catch (profileError) {
@@ -131,8 +140,6 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
-      console.error('Login error:', error);
-      
       // Handle specific error cases
       if (error.status === 401) {
         return { 
@@ -160,19 +167,25 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (email, password, username, redirectPath = '/dashboard') => {
     try {
-      const data = await apiFetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, username }),
-      }, 3); // Try 3 retries with increasing timeouts
+      // Use our simplified auth.signup function
+      const data = await auth.signup(email, password, username);
       
-      // Store token with secure settings
+      // Store tokens with secure settings
       Cookies.set('token', data.token, { 
-        expires: 7, 
+        expires: 30, // 30 days
         path: '/',
         secure: process.env.NODE_ENV === 'production' || window.location.protocol === 'https:',
         sameSite: 'Lax'
       });
+      
+      if (data.refreshToken) {
+        Cookies.set('refreshToken', data.refreshToken, { 
+          expires: 90, // 90 days
+          path: '/',
+          secure: process.env.NODE_ENV === 'production' || window.location.protocol === 'https:',
+          sameSite: 'Lax'
+        });
+      }
       
       // Store the basic user info to prevent an additional request
       if (data.user) {
@@ -184,7 +197,7 @@ export const AuthProvider = ({ children }) => {
         setUser({ token: data.token });
         try {
           // Try to fetch profile but don't block the signup flow if it fails
-          fetchUserProfile(data.token).catch(err => {
+          fetchUserProfile().catch(err => {
             console.warn('Non-critical error fetching profile after signup:', err);
           });
         } catch (profileError) {
@@ -205,23 +218,21 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
-      console.error('Signup error:', error);
-      
       // Handle specific error cases
       if (error.status === 400) {
         // Handle validation errors
         if (error.data) {
-          if (error.data.error.includes('email')) {
+          if (error.data.error && error.data.error.includes('email')) {
             return { 
               success: false, 
               error: error.data.error || 'Email is invalid or already in use'
             };
-          } else if (error.data.error.includes('username')) {
+          } else if (error.data.error && error.data.error.includes('username')) {
             return { 
               success: false, 
               error: error.data.error || 'Username is invalid or already taken'
             };
-          } else if (error.data.error.includes('password')) {
+          } else if (error.data.error && error.data.error.includes('password')) {
             return { 
               success: false, 
               error: error.data.error || 'Password is too weak'
@@ -248,26 +259,23 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     Cookies.remove('token', { path: '/' });
+    Cookies.remove('refreshToken', { path: '/' });
+    auth.logout(); // Clear tokens in the API client
     setUser(null);
     router.push('/');
   };
 
   const refreshUserProfile = async () => {
     if (!user?.token) return null;
-    return fetchUserProfile(user.token);
+    return fetchUserProfile();
   };
 
   const deleteAccount = async () => {
     if (!user?.token) return { success: false, error: 'Not authenticated' };
 
     try {
-      await apiFetch('/api/user/delete', {
-        method: 'DELETE',
-        headers: { 
-          Authorization: `Bearer ${user.token}`,
-          'Content-Type': 'application/json' 
-        }
-      });
+      // Use our simplified userApi.deleteAccount function
+      await userApi.deleteAccount(user.token);
 
       // Clear user data and cookies
       Cookies.remove('token', { path: '/' });

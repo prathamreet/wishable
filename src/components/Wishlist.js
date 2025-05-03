@@ -4,7 +4,7 @@ import { AuthContext } from '../contexts/AuthContext';
 import WishlistItem from './WishlistItem';
 import WishlistForm from './WishlistForm';
 import logger from '../lib/logger';
-import { apiFetch } from '../lib/apiUtils';
+import { wishlist as wishlistApi } from '../lib/apiClient';
 
 // Site categories for better organization
 export const SITE_CATEGORIES = {
@@ -54,14 +54,21 @@ export default function Wishlist() {
         return;
       }
 
-      const data = await apiFetch('/api/wishlist', {
-        headers: { 
-          Authorization: `Bearer ${user.token}`,
-          'Cache-Control': 'no-store'
-        }
-      });
+      // Use our simplified wishlistApi.getItems function
+      const response = await wishlistApi.getItems();
       
-      setItems(data);
+      // Check if the response has the expected format
+      if (response && response.items && Array.isArray(response.items)) {
+        setItems(response.items);
+      } else if (Array.isArray(response)) {
+        // Handle old API format for backward compatibility
+        setItems(response);
+      } else {
+        // If response is not in expected format, set empty array
+        console.warn('Unexpected response format from API:', response);
+        setItems([]);
+      }
+      
       setError(null);
     } catch (err) {
       logger.error('Error fetching wishlist:', err);
@@ -70,6 +77,8 @@ export default function Wishlist() {
       } else {
         setError(err.message || 'Failed to load wishlist');
       }
+      // Set empty array on error
+      setItems([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -89,17 +98,15 @@ export default function Wishlist() {
         throw new Error('Authentication required');
       }
       
-      const data = await apiFetch('/api/wishlist', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}` 
-        },
-        body: JSON.stringify({ url }),
-      });
+      // Use our simplified wishlistApi.addItem function
+      const data = await wishlistApi.addItem({ url });
       
-      setItems(prev => [...prev, data.item]);
-      setError(null);
+      if (data && data.item) {
+        setItems(prev => [...(Array.isArray(prev) ? prev : []), data.item]);
+        setError(null);
+      } else {
+        throw new Error('Failed to add item: Invalid response');
+      }
       
       return { success: true };
     } catch (err) {
@@ -119,17 +126,21 @@ export default function Wishlist() {
         throw new Error('Authentication required');
       }
       
-      await apiFetch(`/api/wishlist/${id}`, {
-        method: 'DELETE',
-        headers: { 
-          Authorization: `Bearer ${user.token}`
-        }
-      });
+      // Use our simplified wishlistApi.deleteItem function
+      await wishlistApi.deleteItem(id);
       
-      setItems(prev => prev.filter(item => String(item._id) !== String(id)));
+      // Filter out the deleted item by id
+      setItems(prev => {
+        if (!Array.isArray(prev)) return [];
+        return prev.filter(item => {
+          // Handle both string and ObjectId comparison
+          const itemId = item._id || item.clientId;
+          return String(itemId) !== String(id);
+        });
+      });
     } catch (err) {
       logger.error('Error deleting item:', err);
-      setError(err.message);
+      setError(err.message || 'Failed to delete item');
     }
   };
 
@@ -139,20 +150,30 @@ export default function Wishlist() {
   };
 
   // Get unique categories from items
-  const uniqueCategories = [...new Set(items.map(item => {
+  const uniqueCategories = items && items.length > 0 ? [...new Set(items.map(item => {
+    if (!item || !item.site) return 'Other';
+    
     for (const [category, sites] of Object.entries(SITE_CATEGORIES)) {
       if (Object.keys(sites).some(site => item.site.includes(site))) {
         return category;
       }
     }
     return 'Other';
-  }))];
+  }))] : [];
 
-  const sortedItems = [...items].sort((a, b) => {
-    if (sortBy === 'price') return a.price - b.price;
-    if (sortBy === 'date') return new Date(b.scrapedAt) - new Date(a.scrapedAt);
-    return a.name.localeCompare(b.name);
-  });
+  const sortedItems = items && items.length > 0 ? [...items].sort((a, b) => {
+    if (!a || !b) return 0;
+    
+    if (sortBy === 'price') {
+      return (a.price || 0) - (b.price || 0);
+    }
+    if (sortBy === 'date') {
+      const dateA = a.scrapedAt ? new Date(a.scrapedAt) : new Date(0);
+      const dateB = b.scrapedAt ? new Date(b.scrapedAt) : new Date(0);
+      return dateB - dateA;
+    }
+    return (a.name || '').localeCompare(b.name || '');
+  }) : [];
   
   const filteredItems = sortedItems.filter(item => {
     if (filterCategory && filterSite) {

@@ -1,8 +1,10 @@
-import { NextResponse } from 'next/server';
 import connectDB from '../../../lib/db';
 import User from '../../../models/User';
 import { getSession } from '../../../lib/auth';
 import logger from '../../../lib/logger';
+import { errorResponse, successResponse } from '../../../lib/apiUtils';
+
+export const dynamic = 'force-dynamic'; // Ensure route is not cached
 
 export async function GET(req) {
   try {
@@ -10,18 +12,21 @@ export async function GET(req) {
     const session = await getSession(req);
     
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return errorResponse('Unauthorized', 401);
     }
 
     const user = await User.findById(session.userId, 'wishlist');
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return errorResponse('User not found', 404);
     }
     
-    return NextResponse.json(user.wishlist);
+    return successResponse({ 
+      items: user.wishlist,
+      count: user.wishlist.length
+    });
   } catch (error) {
     logger.error('Error fetching wishlist:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return errorResponse('Failed to fetch wishlist', 500);
   }
 }
 
@@ -31,12 +36,19 @@ export async function POST(req) {
     const session = await getSession(req);
     
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return errorResponse('Unauthorized', 401);
     }
 
-    const { url } = await req.json();
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      return errorResponse('Invalid request body', 400);
+    }
+
+    const { url } = body;
     if (!url) {
-      return NextResponse.json({ error: 'URL is required' }, { status: 400 });
+      return errorResponse('URL is required', 400);
     }
     
     const { scrapeProductDetails } = await import('../../../lib/scraper');
@@ -46,14 +58,15 @@ export async function POST(req) {
       const user = await User.findById(session.userId);
       
       if (!user) {
-        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        return errorResponse('User not found', 404);
       }
       
       // Let MongoDB handle the _id field automatically
       const newItem = { 
         url, 
         ...details,
-        clientId: new Date().getTime().toString() // Use for client-side identification only
+        clientId: new Date().getTime().toString(), // Use for client-side identification only
+        addedAt: new Date()
       };
       
       // Add to wishlist and save
@@ -62,13 +75,16 @@ export async function POST(req) {
       
       // Return the saved item with its MongoDB-generated _id
       const savedItem = user.wishlist[user.wishlist.length - 1];
-      return NextResponse.json({ message: 'Item added', item: savedItem });
+      return successResponse({ 
+        message: 'Item added successfully', 
+        item: savedItem 
+      }, 201);
     } catch (error) {
       logger.error('Error scraping product:', error);
-      return NextResponse.json({ error: error.message || 'Failed to scrape product' }, { status: 500 });
+      return errorResponse(error.message || 'Failed to scrape product', 500);
     }
   } catch (error) {
     logger.error('Error adding item to wishlist:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return errorResponse('Failed to add item to wishlist', 500);
   }
 }

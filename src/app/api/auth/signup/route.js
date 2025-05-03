@@ -4,10 +4,12 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import logger from '../../../../lib/logger';
 import { errorResponse, successResponse } from '../../../../lib/apiUtils';
+import { withRateLimit, rateLimits } from '../../../../lib/rateLimit';
 
 export const dynamic = 'force-dynamic'; // Never cache this route
 
-export async function POST(req) {
+// Apply rate limiting to the POST handler
+const handler = async (req) => {
   console.time('signup-execution');
   try {
     // Connect to the database first
@@ -17,8 +19,10 @@ export async function POST(req) {
     // Parse request body
     let body;
     try {
-      body = await req.json();
+      const clonedReq = req.clone(); // Clone the request to avoid body already read error
+      body = await clonedReq.json();
     } catch (e) {
+      console.error('Error parsing request body:', e);
       return errorResponse('Invalid request body', 400);
     }
     
@@ -109,15 +113,40 @@ export async function POST(req) {
     await newUser.save();
     console.timeLog('signup-execution', 'User saved');
 
-    // Generate JWT token
+    // Generate JWT token with appropriate expiration
     const token = jwt.sign(
-      { userId: newUser._id },
+      { 
+        userId: newUser._id,
+        username: newUser.username,
+        version: 1 // For token versioning if needed for invalidation
+      },
       process.env.JWT_SECRET,
       { expiresIn: '30d' }
     );
     
+    // Generate refresh token with longer expiration
+    const refreshToken = jwt.sign(
+      { 
+        userId: newUser._id,
+        tokenType: 'refresh'
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '90d' }
+    );
+    
     console.timeEnd('signup-execution');
-    return successResponse({ token }, 201);
+    
+    return successResponse({ 
+      token,
+      refreshToken,
+      user: {
+        id: newUser._id,
+        username: newUser.username,
+        slug: newUser.slug,
+        displayName: newUser.username
+      },
+      expiresIn: 30 * 24 * 60 * 60 // 30 days in seconds
+    }, 201);
   } catch (error) {
     console.timeEnd('signup-execution');
     logger.error('Signup error:', error);
@@ -138,4 +167,16 @@ export async function POST(req) {
     
     return errorResponse('Failed to create account', 500);
   }
-}
+};
+
+// Wrap the handler with a try-catch to ensure we always return a Response
+const safeHandler = async (req, ...args) => {
+  try {
+    return await handler(req, ...args);
+  } catch (error) {
+    console.error('Unhandled error in signup handler:', error);
+    return errorResponse('Failed to create account', 500);
+  }
+};
+
+export const POST = withRateLimit(safeHandler, rateLimits.auth);

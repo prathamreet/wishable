@@ -102,45 +102,11 @@ export function successResponse(
  * @returns {string} - Absolute URL
  */
 export function getApiUrl(path) {
-    // In client-side code, use NEXT_PUBLIC_APP_URL as base URL for absolute paths
-    // In production (especially on Vercel), this ensures requests go to the correct domain
-    const isClient = typeof window !== "undefined";
-
-    // For client-side requests in production, use relative URLs to avoid CORS issues
-    // This is especially important for Vercel deployments
-    if (
-        isClient &&
-        window.location &&
-        (window.location.hostname.includes("vercel.app") ||
-            process.env.NODE_ENV === "production")
-    ) {
-        // Use relative URLs for API requests when on the same domain
-        // Make sure path starts with '/' and doesn't have double slashes
-        return path.startsWith("/") ? path : `/${path}`;
-    }
-
-    // Otherwise, use the configured base URL
-    let baseUrl = "";
-
-    if (isClient) {
-        // For client-side requests, use the environment variable if available
-        baseUrl = process.env.NEXT_PUBLIC_APP_URL || "";
-
-        // If no environment variable is set, use the current origin
-        if (!baseUrl && window.location) {
-            baseUrl = window.location.origin;
-        }
-    }
-
-    // Make sure path starts with '/' and remove duplicate slashes
-    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-
-    // Ensure we don't have double slashes between baseUrl and path
-    if (baseUrl.endsWith("/")) {
-        return `${baseUrl}${normalizedPath.substring(1)}`;
-    }
-
-    return baseUrl ? `${baseUrl}${normalizedPath}` : normalizedPath;
+    // Always use relative URLs for API requests to avoid CORS issues
+    // This is the simplest approach for a Next.js app where API routes are part of the same app
+    
+    // Make sure path starts with '/' and doesn't have double slashes
+    return path.startsWith("/") ? path : `/${path}`;
 }
 
 /**
@@ -158,20 +124,19 @@ export async function apiFetch(path, options = {}, retries = 1) {
             console.log(`🔄 API Request: ${url}`);
         }
 
-        // Add additional headers for better debugging and CORS support
+        // Simplify options to avoid potential CORS issues
         const enhancedOptions = {
             ...options,
             headers: {
                 ...options.headers,
-                "X-Requested-With": "XMLHttpRequest",
                 // Ensure content type for POST/PUT requests if not already set
                 ...((options.method === "POST" || options.method === "PUT") &&
                 (!options.headers || !options.headers["Content-Type"])
                     ? { "Content-Type": "application/json" }
                     : {}),
             },
-            // Ensure credentials are included for same-origin requests (important for cookies)
-            credentials: "same-origin",
+            // Use include for credentials to ensure cookies are sent
+            credentials: "include",
         };
 
         // Add request timeout (15 seconds)
@@ -201,20 +166,21 @@ export async function apiFetch(path, options = {}, retries = 1) {
             responseData = `Failed to parse response: ${parseError.message}`;
         }
 
-        // Log response status and some headers for debugging
+        // Log response status for debugging
         if (process.env.NODE_ENV === "development") {
             console.log(`📥 Response [${response.status}]:`, {
                 url,
                 status: response.status,
-                contentType,
-                ...(typeof window !== "undefined"
-                    ? { responsePreview: responseData }
-                    : {}),
             });
         }
 
         if (!response.ok) {
-            console.error(`❌ API Error [${response.status}]:`, responseData);
+            // For validation errors (400), use a different log level
+            if (response.status === 400) {
+                console.info(`ℹ️ Validation error [${response.status}]:`, responseData);
+            } else {
+                console.error(`❌ API Error [${response.status}]:`, responseData);
+            }
 
             // Create a detailed error object
             const error = new Error(
@@ -268,9 +234,9 @@ export async function apiFetch(path, options = {}, retries = 1) {
                         `🔄 Retrying after network error: ${url} (${retries} retries left)`
                     );
                 }
-                // Add slight delay before retry (exponential backoff)
+                // Add slight delay before retry
                 await new Promise((resolve) =>
-                    setTimeout(resolve, (2 - retries) * 1000)
+                    setTimeout(resolve, 1000)
                 );
                 return apiFetch(path, options, retries - 1);
             }

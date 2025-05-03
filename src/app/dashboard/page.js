@@ -6,7 +6,7 @@ import { AuthContext } from '../../contexts/AuthContext';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import Link from 'next/link';
 import logger from '../../lib/logger';
-import { apiFetch } from '../../lib/apiUtils';
+import { auth } from '../../lib/apiClient';
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useContext(AuthContext);
@@ -31,13 +31,8 @@ export default function Dashboard() {
           throw new Error('Authentication token is missing');
         }
         
-        // Make a test request to verify the token
-        await apiFetch('/api/auth/verify', {
-          headers: { 
-            Authorization: `Bearer ${user.token}`,
-            'Cache-Control': 'no-store'
-          }
-        });
+        // Make a test request to verify the token using our simplified auth.verify function
+        await auth.verify();
         
         // Successfully verified
         setError(null);
