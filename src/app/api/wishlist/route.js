@@ -59,7 +59,12 @@ export async function POST(req) {
         allowPartialResults: true,
         timeout: 30000, // Increased timeout
         retries: 2,     // Add retry attempts
-        useProxy: false // Not using proxy for now, but could be enabled in the future
+        useProxy: false, // Not using proxy for now, but could be enabled in the future
+        onStatusUpdate: (message, type) => {
+          // This function won't be used directly in the API route,
+          // but it's included for completeness and future use
+          logger.info(`Scraping status: ${message} (${type})`);
+        }
       };
       
       // Attempt to scrape product details
@@ -114,7 +119,8 @@ export async function POST(req) {
       } else if (error.message && (
           error.message.includes('Rate limited') || 
           error.message.includes('Access denied') ||
-          error.message.includes('HTTP 529')
+          error.message.includes('HTTP 529') ||
+          error.message.includes('maxRedirects')
       )) {
         return errorResponse(
           'This website is currently blocking our automatic product detection. ' +

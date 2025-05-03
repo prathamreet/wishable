@@ -40,7 +40,13 @@ async function handleScrapeRequest(req) {
     // Configure scraping options
     const scrapingOptions = {
       allowPartialResults: true,
-      timeout: 20000
+      timeout: 20000,
+      retries: 2,
+      onStatusUpdate: (message, type) => {
+        // This function won't be used directly in the API route,
+        // but it's included for completeness and future use
+        logger.info(`Scraping status: ${message} (${type})`);
+      }
     };
     
     // Attempt to scrape product details
@@ -53,6 +59,16 @@ async function handleScrapeRequest(req) {
     });
   } catch (error) {
     logger.error('Error scraping product:', error);
+    
+    // Handle specific axios errors
+    if (error.code === 'ECONNABORTED') {
+      return errorResponse('Request timed out. The website might be slow or blocking our requests.', 408);
+    } else if (error.message && error.message.includes('maxRedirects')) {
+      return errorResponse('Maximum number of redirects exceeded. The website might be using redirect loops.', 400);
+    } else if (error.isAxiosError && error.response && (error.response.status === 429 || error.response.status === 529)) {
+      return errorResponse('This website is currently blocking our automatic product detection. Please try again later or provide manual details.', 429);
+    }
+    
     return errorResponse(error.message || 'Failed to scrape product', 500);
   }
 }
@@ -108,6 +124,16 @@ async function handleBatchScrapeRequest(req) {
     });
   } catch (error) {
     logger.error('Error batch scraping products:', error);
+    
+    // Handle specific axios errors
+    if (error.code === 'ECONNABORTED') {
+      return errorResponse('Request timed out. The website might be slow or blocking our requests.', 408);
+    } else if (error.message && error.message.includes('maxRedirects')) {
+      return errorResponse('Maximum number of redirects exceeded. The website might be using redirect loops.', 400);
+    } else if (error.isAxiosError && error.response && (error.response.status === 429 || error.response.status === 529)) {
+      return errorResponse('This website is currently blocking our automatic product detection. Please try again later or provide manual details.', 429);
+    }
+    
     return errorResponse(error.message || 'Failed to scrape products', 500);
   }
 }

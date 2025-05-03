@@ -292,6 +292,7 @@ function findBestImageMatch(selectors, $, siteSpecific = [], baseUrl = '') {
  * @param {Object} options - Scraping options
  * @param {boolean} options.allowPartialResults - Whether to return partial results if some fields are missing
  * @param {boolean} options.useProxy - Whether to use a proxy for the request (not implemented yet)
+ * @param {Function} options.onStatusUpdate - Callback function to receive status updates during scraping
  * @returns {Object} - Scraped product details with status information
  */
 export async function scrapeProductDetails(url, options = {}) {
@@ -300,8 +301,16 @@ export async function scrapeProductDetails(url, options = {}) {
     allowPartialResults = true,
     useProxy = false,
     timeout = 20000,
-    retries = 1
+    retries = 1,
+    onStatusUpdate = null
   } = options;
+  
+  // Helper function to send status updates if callback is provided
+  const updateStatus = (message, type = 'info') => {
+    if (typeof onStatusUpdate === 'function') {
+      onStatusUpdate(message, type);
+    }
+  };
 
   // Validate URL
   if (!url || typeof url !== 'string') {
@@ -309,9 +318,12 @@ export async function scrapeProductDetails(url, options = {}) {
   }
 
   try {
+    updateStatus('Starting scraping process...', 'info');
+    
     // Parse URL and get domain
     const urlObj = new URL(url);
     const domain = urlObj.hostname.replace('www.', '');
+    updateStatus(`Analyzing domain: ${domain}`, 'info');
     
     // Find matching site configuration
     const siteKey = Object.keys(siteSpecificSelectors).find(key => domain.includes(key));
@@ -324,11 +336,16 @@ export async function scrapeProductDetails(url, options = {}) {
     if (!siteConfig) {
       logger.info(`No site-specific selectors for domain: ${domain}. Using generic selectors.`);
       warnings.push('Using generic selectors for this website. Results may be less accurate.');
+      updateStatus(`No specific configuration for ${domain}. Using generic product detection.`, 'warning');
+    } else {
+      updateStatus(`Found optimized configuration for ${domain}`, 'success');
     }
 
     // Implement retry logic
     let lastError = null;
     let response = null;
+    
+    updateStatus('Preparing to fetch product page...', 'info');
     
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
@@ -336,6 +353,7 @@ export async function scrapeProductDetails(url, options = {}) {
           // Add exponential backoff between retries
           const backoffTime = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
           logger.info(`Retry attempt ${attempt}/${retries} for ${url} after ${backoffTime}ms`);
+          updateStatus(`Request failed. Retrying (${attempt}/${retries})...`, 'warning');
           await new Promise(resolve => setTimeout(resolve, backoffTime));
         }
         
@@ -343,6 +361,8 @@ export async function scrapeProductDetails(url, options = {}) {
         // Add a random delay before making the request to reduce the chance of being rate-limited
         const randomDelay = Math.floor(Math.random() * 2000) + 1000; // Random delay between 1-3 seconds
         await new Promise(resolve => setTimeout(resolve, randomDelay));
+        
+        updateStatus('Connecting to product page...', 'info');
         
         // Randomize user agent to appear more like a regular browser
         const userAgents = [
@@ -352,6 +372,7 @@ export async function scrapeProductDetails(url, options = {}) {
           'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36'
         ];
         const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
+        updateStatus('Sending HTTP request...', 'info');
         
         response = await axios.get(url, {
           headers: {
@@ -364,21 +385,30 @@ export async function scrapeProductDetails(url, options = {}) {
             'Connection': 'keep-alive'
           },
           timeout: timeout,
+          // Set maximum number of redirects to prevent infinite redirect loops
+          maxRedirects: 5,
           // Allow all status codes so we can handle them in our own logic
-          validateStatus: () => true
+          validateStatus: () => true,
+          // Prevent cookies from being sent in subsequent requests
+          withCredentials: false
         });
+        
+        updateStatus('Response received from server', 'info');
         
         // Check the response status
         if (response.status === 200) {
           // If we got a successful response, break out of the retry loop
+          updateStatus('Successfully retrieved product page', 'success');
           break;
         } else if (response.status === 429 || response.status === 529) {
           logger.warn(`Rate limited (HTTP ${response.status}) on attempt ${attempt}/${retries}. Will retry.`);
+          updateStatus(`Rate limited (HTTP ${response.status}). Website is blocking our request.`, 'error');
           lastError = new Error('Rate limited by the website. Please try again later.');
           // Continue to next retry attempt
           continue;
         } else if (response.status === 403) {
           logger.warn(`Access denied (HTTP ${response.status}) on attempt ${attempt}/${retries}. Will retry.`);
+          updateStatus('Access denied (HTTP 403). Website is blocking our request.', 'error');
           lastError = new Error('Access denied by the website. The site might be blocking our requests.');
           // Continue to next retry attempt
           continue;
@@ -469,9 +499,14 @@ export async function scrapeProductDetails(url, options = {}) {
     }
 
     // Parse HTML
+    updateStatus('Parsing HTML content...', 'info');
     const html = response.data;
     const $ = load(html);
+    updateStatus('HTML parsed successfully', 'success');
 
+    // Start extracting product information
+    updateStatus('Extracting product details...', 'info');
+    
     // Common selectors for product names
     const nameSelectors = [
       // Schema.org metadata
@@ -860,7 +895,9 @@ export async function scrapeProductDetails(url, options = {}) {
     }
 
     // Return the scraped data with status information
-    return {
+    updateStatus('Finalizing product data...', 'info');
+    
+    const productData = {
       name,
       price,
       thumbnail,
@@ -875,6 +912,9 @@ export async function scrapeProductDetails(url, options = {}) {
         siteSupported: !!siteConfig
       }
     };
+    
+    updateStatus('Product data ready', 'success');
+    return productData;
   } catch (error) {
     // Handle specific error cases
     if (error.code === 'ECONNABORTED') {

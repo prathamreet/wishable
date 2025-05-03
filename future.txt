@@ -1,10 +1,15 @@
-js alert -> toast notification
+dont read these text its not for u AI its for meTODO:
+
+[TODO] js alert -> toast notification
+
+[DONE] going to /settings or other without login. shows error. notfound.js should be made
+- Fixed: not-found.js is already implemented
 
 
-going to /settings or toher without login. shows error. notfound.js shoul dbe made
+
+[DONE] This website is currently blocking our automatic product detection. Please try again later or provide manual details.
+- Fixed: Improved error handling in scraper.js and scrape API routes
 
 
-scraping take some ties. add a state loading so user can now scraping is being done
-who we will know its api faliure or scrapping is doing 
 
-database choould be more descrete or distrubuter user auth detail sparate user profile detail seapra user whihslihs detail spartea
+[TODO] database should be more discrete or distributed: user auth details separate, user profile details separate, user wishlists details separate

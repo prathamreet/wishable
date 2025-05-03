@@ -1,5 +1,6 @@
 import { Inter } from 'next/font/google';
 import "./globals.css";
+import "../styles/scrollbar-hide.css";
 import { AuthProvider } from "../contexts/AuthContext";
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { ToastProvider } from '../contexts/ToastContext';
