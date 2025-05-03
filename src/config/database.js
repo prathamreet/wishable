@@ -13,6 +13,9 @@ const DB_NAMES = {
 // Get current environment
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
+// Check if this is a Vercel preview deployment
+const IS_VERCEL_PREVIEW = process.env.VERCEL_ENV === 'preview';
+
 /**
  * Get database name based on environment
  * @returns {string} The database name to use
@@ -69,8 +72,11 @@ const validateDatabaseName = (connectionString) => {
   const usingTestDb = connectionString.includes('/wishable_test?') || 
                       connectionString.endsWith('/wishable_test');
   
-  // Only validate in production to prevent blocking test/preview environments
-  if (usingTestDb && NODE_ENV === 'production') {
+  // Check if this is a Vercel preview deployment
+  const isVercelPreview = process.env.VERCEL_ENV === 'preview' || IS_VERCEL_PREVIEW;
+  
+  // Only validate in production (and not in Vercel preview) to prevent blocking test/preview environments
+  if (usingTestDb && NODE_ENV === 'production' && !isVercelPreview) {
     const errorMessage = 'ERROR: Attempting to use the test database in production. ' +
       'This is not allowed for security and data integrity reasons. ' +
       'Please configure a proper database name using MONGODB_DB_NAME environment variable.';
@@ -82,6 +88,7 @@ const validateDatabaseName = (connectionString) => {
   // Log the database being used for debugging
   console.log(`Database validation passed. Using connection string that ends with: ...${connectionString.slice(-30)}`);
   console.log(`Current environment: ${NODE_ENV}, Database name from env: ${process.env.MONGODB_DB_NAME || 'not set'}`);
+  console.log(`Vercel environment: ${process.env.VERCEL_ENV || 'not set'}`);
 };
 
 // MongoDB connection options
@@ -90,9 +97,12 @@ const MONGODB_OPTIONS = {
   useUnifiedTopology: true,
   bufferCommands: false,
   maxPoolSize: 10, // Keep a pool of connections ready
-  serverSelectionTimeoutMS: 10000, // How long to try connecting before timing out
-  socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+  serverSelectionTimeoutMS: 15000, // How long to try connecting before timing out (increased)
+  socketTimeoutMS: 60000, // Close sockets after 60 seconds of inactivity (increased)
   family: 4, // Use IPv4, skip trying IPv6
+  retryWrites: true, // Enable retryable writes
+  w: 'majority', // Write concern
+  connectTimeoutMS: 30000, // Connection timeout (increased)
 };
 
 // Export configuration
