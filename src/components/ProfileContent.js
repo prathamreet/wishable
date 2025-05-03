@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Image from 'next/image';
-import { SITE_CATEGORIES } from './Wishlist';
+import { SITE_CATEGORIES } from '../lib/siteCategories';
 
 function ProfileWishlistItem({ item, isFirst }) {
   const [imageError, setImageError] = useState(false);
@@ -15,12 +15,25 @@ function ProfileWishlistItem({ item, isFirst }) {
   }
 
   function getSiteIcon(site) {
+    // Marketplaces
     if (site.includes('amazon')) return '🛒';
     if (site.includes('flipkart')) return '🛍️';
+    if (site.includes('snapdeal')) return '🏪';
+    if (site.includes('walmart')) return '🛒';
+    if (site.includes('target')) return '🎯';
+    if (site.includes('bestbuy')) return '🔌';
+    if (site.includes('ebay')) return '📦';
+    if (site.includes('newegg')) return '💻';
+    
+    // Fashion
     if (site.includes('myntra')) return '👕';
     if (site.includes('ajio')) return '👔';
     if (site.includes('nykaa')) return '💄';
-    if (site.includes('snapdeal')) return '🏪';
+    if (site.includes('zara')) return '👗';
+    if (site.includes('asos')) return '👚';
+    if (site.includes('hm')) return '👖';
+    
+    // Electronics
     if (site.includes('croma')) return '📱';
     if (site.includes('reliancedigital')) return '🔌';
     if (site.includes('apple')) return '🍎';
@@ -28,9 +41,22 @@ function ProfileWishlistItem({ item, isFirst }) {
     if (site.includes('dell')) return '💻';
     if (site.includes('hp')) return '🖥️';
     if (site.includes('lenovo')) return '💻';
-    if (site.includes('gamestheshop')) return '🎮';
-    if (site.includes('epic')) return '🎮';
+    
+    // Gaming
     if (site.includes('steam')) return '🎮';
+    if (site.includes('epic')) return '🎮';
+    if (site.includes('gog')) return '🎮';
+    if (site.includes('nintendo')) return '🎮';
+    if (site.includes('playstation')) return '🎮';
+    if (site.includes('xbox')) return '🎮';
+    if (site.includes('humble')) return '🎮';
+    if (site.includes('greenmangaming')) return '🎮';
+    if (site.includes('fanatical')) return '🎮';
+    if (site.includes('cdkeys')) return '🎮';
+    if (site.includes('gamersgate')) return '🎮';
+    if (site.includes('gamestheshop')) return '🎮';
+    
+    // Default
     return '🌐';
   }
 

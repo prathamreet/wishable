@@ -1,12 +1,12 @@
 'use client';
 import { useState } from 'react';
+import { SITE_CATEGORIES } from '../lib/siteCategories';
 
-const SUPPORTED_SITES = {
-  'Popular Marketplaces': ['Amazon', 'Flipkart', 'Snapdeal'],
-  'Fashion & Beauty': ['Myntra', 'Ajio', 'Nykaa'],
-  'Electronics & Tech': ['Croma', 'Reliance Digital', 'Apple Store', 'Samsung', 'Dell', 'HP', 'Lenovo'],
-  'Gaming': ['Games The Shop', 'Epic Games', 'Steam']
-};
+// Convert SITE_CATEGORIES to the format needed for the form
+const SUPPORTED_SITES = Object.entries(SITE_CATEGORIES).reduce((acc, [category, sites]) => {
+  acc[category] = Object.values(sites);
+  return acc;
+}, {});
 
 export default function WishlistForm({ onAdd, isLoading }) {
   const [url, setUrl] = useState('');
@@ -25,13 +25,17 @@ export default function WishlistForm({ onAdd, isLoading }) {
       const urlObj = new URL(url);
       const domain = urlObj.hostname.toLowerCase();
       
-      // Check if the domain is from a supported site
-      const isSupported = Object.values(SUPPORTED_SITES).flat().some(site => 
-        domain.includes(site.toLowerCase().replace(/\s+/g, ''))
-      );
+      // We now support many sites, so we'll be more lenient
+      // Just do a basic URL validation
+      if (!domain.includes('.')) {
+        setError('Please enter a valid product URL');
+        return;
+      }
       
-      if (!isSupported) {
-        setError('This website is not supported. Please use one of the supported sites.');
+      // Optional: Check if it's likely a product URL
+      const isLikelyProduct = /product|item|dp\/|\/p\/|\/pd\/|\/ip\/|\/app\/|\/game\//.test(url);
+      if (!isLikelyProduct) {
+        setError('This doesn\'t appear to be a product URL. Please make sure you\'re using a direct link to a product.');
         return;
       }
       
@@ -51,9 +55,12 @@ export default function WishlistForm({ onAdd, isLoading }) {
   return (
     <div className="mb-8">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+        <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">
           Add to Wishlist
         </h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          Paste a product URL from any supported site, including gaming platforms like Steam, Epic Games, PlayStation Store, and more!
+        </p>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -137,7 +144,8 @@ export default function WishlistForm({ onAdd, isLoading }) {
                 </h4>
                 <ul className="space-y-1">
                   {sites.map(site => (
-                    <li key={site} className="text-sm text-gray-600 dark:text-gray-300">
+                    <li key={site} className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-1">
+                      <span className="w-3 h-3 rounded-full bg-green-500 flex-shrink-0"></span>
                       {site}
                     </li>
                   ))}

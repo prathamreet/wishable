@@ -5,34 +5,7 @@ import WishlistItem from './WishlistItem';
 import WishlistForm from './WishlistForm';
 import logger from '../lib/logger';
 import { wishlist as wishlistApi } from '../lib/apiClient';
-
-// Site categories for better organization
-export const SITE_CATEGORIES = {
-  'Popular Marketplaces': {
-    amazon: 'Amazon',
-    flipkart: 'Flipkart',
-    snapdeal: 'Snapdeal'
-  },
-  'Fashion & Beauty': {
-    myntra: 'Myntra',
-    ajio: 'Ajio',
-    nykaa: 'Nykaa'
-  },
-  'Electronics & Tech': {
-    croma: 'Croma',
-    reliancedigital: 'Reliance Digital',
-    apple: 'Apple Store',
-    samsung: 'Samsung',
-    dell: 'Dell',
-    hp: 'HP',
-    lenovo: 'Lenovo'
-  },
-  'Gaming': {
-    gamestheshop: 'Games The Shop',
-    epicgames: 'Epic Games',
-    steam: 'Steam'
-  }
-};
+import { SITE_CATEGORIES } from '../lib/siteCategories';
 
 export default function Wishlist() {
   const { user } = useContext(AuthContext);

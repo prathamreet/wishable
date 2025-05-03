@@ -153,6 +153,109 @@ const data = await auth.login(email, password);
 - **Headers**: `Authorization: Bearer token`
 - **Response**: Success message
 
+### Scraping Operations
+
+#### Scrape URL
+- **Endpoint**: `POST /api/scrape`
+- **Description**: Scrapes product details from a URL without saving to wishlist
+- **Headers**: `Authorization: Bearer token`
+- **Request Body**:
+  ```json
+  {
+    "url": "https://example.com/product"
+  }
+  ```
+- **Response**:
+  ```json
+  {
+    "message": "Product details scraped successfully",
+    "product": {
+      "name": "Product Name",
+      "price": 99.99,
+      "thumbnail": "url_to_thumbnail",
+      "description": "Product description",
+      "site": "example.com",
+      "scrapedAt": "2023-01-01T00:00:00Z",
+      "url": "https://example.com/product",
+      "scrapingStatus": {
+        "isComplete": true,
+        "warnings": [],
+        "siteSupported": true
+      }
+    }
+  }
+  ```
+
+#### Batch Scrape URLs
+- **Endpoint**: `POST /api/scrape?batch=true`
+- **Description**: Scrapes multiple URLs in parallel
+- **Headers**: `Authorization: Bearer token`
+- **Request Body**:
+  ```json
+  {
+    "urls": [
+      "https://example.com/product1",
+      "https://example.com/product2"
+    ],
+    "options": {
+      "concurrency": 2,
+      "delayBetweenRequests": 1000
+    }
+  }
+  ```
+- **Response**:
+  ```json
+  {
+    "message": "Products scraped successfully",
+    "products": [
+      {
+        "name": "Product 1",
+        "price": 99.99,
+        "thumbnail": "url_to_thumbnail",
+        "site": "example.com",
+        "url": "https://example.com/product1",
+        "scrapingStatus": {
+          "isComplete": true,
+          "warnings": [],
+          "siteSupported": true
+        }
+      },
+      {
+        "name": "Product 2",
+        "price": 149.99,
+        "thumbnail": "url_to_thumbnail",
+        "site": "example.com",
+        "url": "https://example.com/product2",
+        "scrapingStatus": {
+          "isComplete": true,
+          "warnings": [],
+          "siteSupported": true
+        }
+      }
+    ]
+  }
+  ```
+
+#### Validate URL
+- **Endpoint**: `POST /api/scrape/validate`
+- **Description**: Checks if a URL is likely a product page
+- **Headers**: `Authorization: Bearer token`
+- **Request Body**:
+  ```json
+  {
+    "url": "https://example.com/product"
+  }
+  ```
+- **Response**:
+  ```json
+  {
+    "url": "https://example.com/product",
+    "domain": "example.com",
+    "isValid": true,
+    "message": "URL appears to be a valid product page"
+  }
+  ```
+
 ### Wishlist Operations
 
 #### Get Wishlist
@@ -191,10 +294,35 @@ const data = await auth.login(email, password);
 - **Request Body**:
   ```json
   {
-    "url": "https://example.com/product"
+    "url": "https://example.com/product",
+    "manualDetails": {
+      "name": "Custom Name",
+      "price": 99.99,
+      "description": "Custom description"
+    }
   }
   ```
-- **Response**: Added item object
+- **Response**: 
+  ```json
+  {
+    "message": "Item added successfully",
+    "item": {
+      "_id": "item_id",
+      "name": "Product Name",
+      "price": 99.99,
+      "thumbnail": "url_to_thumbnail",
+      "url": "https://example.com/product",
+      "site": "example.com",
+      "status": "active",
+      "addedAt": "2023-01-01T00:00:00Z"
+    },
+    "scrapingStatus": {
+      "isComplete": true,
+      "warnings": [],
+      "siteSupported": true
+    }
+  }
+  ```
 
 #### Get Item
 - **Endpoint**: `GET /api/wishlist/{id}`
@@ -253,41 +381,84 @@ const refreshResult = await auth.refreshToken(refreshToken);
 
 ```javascript
 // Get user profile
-const profile = await userApi.getProfile();
+const profile = await user.getProfile();
 
 // Update profile
-await userApi.updateProfile({
+await user.updateProfile({
   displayName: 'New Name',
   bio: 'My new bio'
 });
 
 // Delete account
-await userApi.deleteAccount();
+await user.deleteAccount();
+```
+
+### Scraping Operations
+
+```javascript
+// Scrape a URL without saving to wishlist
+const { product } = await scraper.scrapeUrl('https://example.com/product');
+console.log(product.name, product.price);
+
+// Check if scraping was complete
+if (!product.scrapingStatus.isComplete) {
+  console.warn('Incomplete data:', product.scrapingStatus.warnings);
+}
+
+// Batch scrape multiple URLs
+const { products } = await scraper.batchScrape([
+  'https://example.com/product1',
+  'https://example.com/product2'
+], {
+  concurrency: 2,
+  delayBetweenRequests: 1000
+});
+
+// Validate if a URL is likely a product page
+const { isValid, domain } = await scraper.validateUrl('https://example.com/product');
+if (isValid) {
+  console.log(`Valid product URL from ${domain}`);
+} else {
+  console.warn('Not a valid product URL');
+}
 ```
 
 ### Wishlist Operations
 
 ```javascript
 // Get wishlist items
-const { items, count } = await wishlistApi.getItems();
+const { items, count } = await wishlist.getItems();
 
 // Add item to wishlist
-const newItem = await wishlistApi.addItem({ url: 'https://example.com/product' });
+const newItem = await wishlist.addItem({ 
+  url: 'https://example.com/product',
+  // Optional manual details that override scraped data
+  manualDetails: {
+    name: 'Custom Product Name',
+    price: 99.99
+  }
+});
 
 // Get specific item
-const item = await wishlistApi.getItem(itemId);
+const item = await wishlist.getItem(itemId);
 
 // Update item (re-scrape)
-const updatedItem = await wishlistApi.updateItem(itemId, { url: 'https://example.com/product' });
+const updatedItem = await wishlist.updateItem(itemId, { 
+  url: 'https://example.com/product',
+  manualDetails: {
+    notes: 'Birthday gift idea'
+  }
+});
 
 // Update item fields (no re-scrape)
-const patchedItem = await wishlistApi.patchItem(itemId, { 
+const patchedItem = await wishlist.patchItem(itemId, { 
   notes: 'Birthday gift idea',
-  priority: 'high'
+  priority: 'high',
+  status: 'purchased'
 });
 
 // Delete item from wishlist
-await wishlistApi.deleteItem(itemId);
+await wishlist.deleteItem(itemId);
 ```
 
 ## Error Handling

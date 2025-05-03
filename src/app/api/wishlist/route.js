@@ -46,7 +46,7 @@ export async function POST(req) {
       return errorResponse('Invalid request body', 400);
     }
 
-    const { url } = body;
+    const { url, manualDetails = {} } = body;
     if (!url) {
       return errorResponse('URL is required', 400);
     }
@@ -54,17 +54,36 @@ export async function POST(req) {
     const { scrapeProductDetails } = await import('../../../lib/scraper');
     
     try {
-      const details = await scrapeProductDetails(url);
+      // Configure scraping options
+      const scrapingOptions = {
+        allowPartialResults: true,
+        timeout: 20000
+      };
+      
+      // Attempt to scrape product details
+      const scrapedDetails = await scrapeProductDetails(url, scrapingOptions);
       const user = await User.findById(session.userId);
       
       if (!user) {
         return errorResponse('User not found', 404);
       }
       
-      // Let MongoDB handle the _id field automatically
+      // Extract scraping status
+      const { scrapingStatus, ...productDetails } = scrapedDetails;
+      
+      // Merge scraped details with any manual details provided by the user
+      // Manual details take precedence over scraped details
+      const mergedDetails = {
+        ...productDetails,
+        ...manualDetails,
+        // Always keep the original URL and scraping timestamp
+        url,
+        scrapedAt: new Date().toISOString()
+      };
+      
+      // Create the new wishlist item
       const newItem = { 
-        url, 
-        ...details,
+        ...mergedDetails,
         clientId: new Date().getTime().toString(), // Use for client-side identification only
         addedAt: new Date()
       };
@@ -73,14 +92,61 @@ export async function POST(req) {
       user.wishlist.push(newItem);
       await user.save();
       
-      // Return the saved item with its MongoDB-generated _id
+      // Return the saved item with its MongoDB-generated _id and scraping status
       const savedItem = user.wishlist[user.wishlist.length - 1];
       return successResponse({ 
         message: 'Item added successfully', 
-        item: savedItem 
+        item: savedItem,
+        scrapingStatus
       }, 201);
     } catch (error) {
       logger.error('Error scraping product:', error);
+      
+      // If the user provided manual details, we can still add the item
+      // even if scraping failed completely
+      if (Object.keys(manualDetails).length > 0 && manualDetails.name) {
+        try {
+          const user = await User.findById(session.userId);
+          
+          if (!user) {
+            return errorResponse('User not found', 404);
+          }
+          
+          // Create a minimal item with manual details
+          const newItem = { 
+            url,
+            name: manualDetails.name,
+            price: manualDetails.price || 0,
+            thumbnail: manualDetails.thumbnail || '',
+            description: manualDetails.description || '',
+            site: new URL(url).hostname.replace('www.', ''),
+            scrapedAt: new Date().toISOString(),
+            clientId: new Date().getTime().toString(),
+            addedAt: new Date()
+          };
+          
+          // Add to wishlist and save
+          user.wishlist.push(newItem);
+          await user.save();
+          
+          // Return the saved item with a warning
+          const savedItem = user.wishlist[user.wishlist.length - 1];
+          return successResponse({ 
+            message: 'Item added with manual details. Automatic scraping failed.', 
+            item: savedItem,
+            scrapingStatus: {
+              isComplete: false,
+              warnings: [error.message || 'Failed to scrape product details'],
+              siteSupported: false
+            }
+          }, 201);
+        } catch (saveError) {
+          logger.error('Error saving manual item:', saveError);
+          return errorResponse('Failed to add item with manual details', 500);
+        }
+      }
+      
+      // If no manual details or scraping failed completely
       return errorResponse(error.message || 'Failed to scrape product', 500);
     }
   } catch (error) {

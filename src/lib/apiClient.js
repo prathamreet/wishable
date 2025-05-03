@@ -404,5 +404,47 @@ export const wishlist = {
   }
 };
 
+/**
+ * Scraping API functions
+ */
+export const scraper = {
+  /**
+   * Scrape product details from a URL without saving to wishlist
+   * @param {string} url - Product URL to scrape
+   * @returns {Promise<Object>} - Scraped product details
+   */
+  async scrapeUrl(url) {
+    return fetchAPI('/api/scrape', {
+      method: 'POST',
+      body: JSON.stringify({ url })
+    });
+  },
+  
+  /**
+   * Batch scrape multiple URLs
+   * @param {string[]} urls - Array of URLs to scrape
+   * @param {Object} options - Scraping options
+   * @returns {Promise<Object>} - Batch scraping results
+   */
+  async batchScrape(urls, options = {}) {
+    return fetchAPI('/api/scrape?batch=true', {
+      method: 'POST',
+      body: JSON.stringify({ urls, options })
+    });
+  },
+  
+  /**
+   * Validate if a URL is likely a product page
+   * @param {string} url - URL to validate
+   * @returns {Promise<{url: string, domain: string, isValid: boolean, message: string}>} - Validation result
+   */
+  async validateUrl(url) {
+    return fetchAPI('/api/scrape/validate', {
+      method: 'POST',
+      body: JSON.stringify({ url })
+    });
+  }
+};
+
 // Export the raw fetchAPI function for any custom API calls
 export { fetchAPI };

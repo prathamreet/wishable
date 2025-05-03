@@ -2,6 +2,8 @@
 import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import Wishlist from '../../components/Wishlist';
+import SupportedSites from '../../components/SupportedSites';
+import GamingFeatures from '../../components/GamingFeatures';
 import { AuthContext } from '../../contexts/AuthContext';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import Link from 'next/link';
@@ -87,7 +89,32 @@ export default function Dashboard() {
           View Profile
         </Link>
       </div>
+      
       <Wishlist />
+      
+      {/* Display supported sites */}
+      <SupportedSites />
+      
+      {/* New feature announcement */}
+      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow-md p-6 mt-8">
+        <h2 className="text-xl font-bold mb-2">New: Enhanced Gaming Support!</h2>
+        <p className="mb-3">
+          We've added support for all major gaming platforms. Now you can track games from Steam, Epic Games, GOG, 
+          PlayStation Store, Xbox Store, Nintendo eShop, and many more!
+        </p>
+        <div className="flex flex-wrap gap-2 mt-3">
+          <span className="bg-white/20 px-2 py-1 rounded-full text-sm">Steam</span>
+          <span className="bg-white/20 px-2 py-1 rounded-full text-sm">Epic Games</span>
+          <span className="bg-white/20 px-2 py-1 rounded-full text-sm">GOG</span>
+          <span className="bg-white/20 px-2 py-1 rounded-full text-sm">PlayStation</span>
+          <span className="bg-white/20 px-2 py-1 rounded-full text-sm">Xbox</span>
+          <span className="bg-white/20 px-2 py-1 rounded-full text-sm">Nintendo</span>
+          <span className="bg-white/20 px-2 py-1 rounded-full text-sm">+ More</span>
+        </div>
+      </div>
+      
+      {/* Gaming features component */}
+      <GamingFeatures />
     </div>
   );
 }
