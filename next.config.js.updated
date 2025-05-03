@@ -1,0 +1,11 @@
+/** @type {import('next').NextConfig} */
+const allowedImageDomains = require('./src/config/allowed-domains');
+
+const nextConfig = {
+  reactStrictMode: true,
+  images: {
+    domains: allowedImageDomains,
+  },
+}
+
+module.exports = nextConfig

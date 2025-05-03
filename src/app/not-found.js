@@ -32,7 +32,7 @@ export default function NotFound() {
         <h1 className="text-4xl font-bold text-light-text dark:text-dark-text mb-4">Page Not Found</h1>
         
         <p className="text-light-text/70 dark:text-dark-text/70 mb-8">
-          The page you're looking for doesn't exist or you don't have permission to access it.
+          The page you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to access it.
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
