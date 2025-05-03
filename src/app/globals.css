@@ -3,60 +3,86 @@
 @tailwind utilities;
 
 :root {
-    --background: #ffffff;
-    --foreground: #171717;
+    --background: #f8fafc;
+    --foreground: #1e293b;
+    --card-bg: #ffffff;
+    --card-border: #e2e8f0;
+    --accent: #f1f5f9;
+    --primary: #0ea5e9;
+    --primary-hover: #0284c7;
+    --secondary: #8b5cf6;
+    --secondary-hover: #7c3aed;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --background: #0a0a0a;
-        --foreground: #ededed;
+.dark {
+    --background: #0f172a;
+    --foreground: #f8fafc;
+    --card-bg: #1e293b;
+    --card-border: #334155;
+    --accent: #1e293b;
+    --primary: #38bdf8;
+    --primary-hover: #0ea5e9;
+    --secondary: #a78bfa;
+    --secondary-hover: #8b5cf6;
+}
+
+@layer base {
+    body {
+        @apply bg-light-background dark:bg-dark-background text-light-text dark:text-dark-text transition-colors duration-300;
+        font-family: var(--font-inter), system-ui, sans-serif;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        @apply font-semibold tracking-tight;
+    }
+    
+    ::selection {
+        @apply bg-primary-200 dark:bg-primary-800 text-primary-900 dark:text-primary-100;
     }
 }
 
-body {
-    background: var(--background);
-    color: var(--foreground);
-    font-family: Arial, Helvetica, sans-serif;
-}
+@layer components {
+    /* Hero section styles */
+    .hero-gradient {
+        @apply bg-gradient-to-r from-primary-600 to-secondary-600 dark:from-primary-700 dark:to-secondary-700;
+    }
 
-/* Base styles for the application */
-body {
-    @apply bg-amber-50 text-gray-900 dark:bg-gray-900 dark:text-white;
-}
+    .hero-pattern {
+        @apply bg-dot-pattern dark:bg-dot-pattern-dark bg-[size:20px_20px];
+    }
 
-/* Hero section styles */
-.hero-gradient {
-    @apply bg-gradient-to-r from-indigo-500 to-purple-600;
-}
+    /* Card styles */
+    .card {
+        @apply bg-light-card dark:bg-dark-card rounded-lg shadow-soft dark:shadow-soft-dark transition-all duration-300 border border-light-border dark:border-dark-border overflow-hidden hover:shadow-md;
+    }
 
-.hero-pattern {
-    background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-    background-size: 20px 20px;
-}
+    /* Button styles */
+    .btn-primary {
+        @apply bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-300 font-medium;
+    }
 
-/* Card styles */
-.card {
-    @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700 overflow-hidden;
-}
+    .btn-secondary {
+        @apply bg-light-accent hover:bg-gray-200 dark:bg-dark-accent dark:hover:bg-gray-700 text-light-text dark:text-dark-text px-4 py-2 rounded-lg transition-colors duration-300 font-medium;
+    }
 
-/* Button styles */
-.btn-primary {
-    @apply bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors;
-}
+    .btn-outline {
+        @apply border border-primary-600 text-primary-600 hover:bg-primary-50 dark:border-primary-400 dark:text-primary-400 dark:hover:bg-primary-900/30 px-4 py-2 rounded-lg transition-colors duration-300 font-medium;
+    }
 
-.btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white px-4 py-2 rounded-lg transition-colors;
-}
+    /* Form elements */
+    .form-input {
+        @apply w-full px-4 py-2 rounded-lg border border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card text-light-text dark:text-dark-text focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all duration-300;
+    }
 
-/* Accent colors for sections */
-.accent-border {
-    @apply border-l-4 border-indigo-500;
-}
+    /* Toast notification */
+    .toast {
+        @apply fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg bg-light-card dark:bg-dark-card border-l-4 border-primary-500 animate-fade-in;
+    }
 
-/* Admin section styles */
-.admin-section {
-    @apply bg-gray-50 dark:bg-gray-800/50 p-6 rounded-lg border border-gray-200 dark:border-gray-700;
+    /* Admin section styles */
+    .admin-section {
+        @apply bg-light-accent dark:bg-dark-accent/50 p-6 rounded-lg border border-light-border dark:border-dark-border;
+    }
 }
 
 /* Animations */
@@ -77,5 +103,15 @@ body {
 
 .animate-slide-up {
     animation: slideUp 0.3s ease-out forwards;
+    will-change: transform, opacity;
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.animate-slide-in-right {
+    animation: slideInRight 0.3s ease-out forwards;
     will-change: transform, opacity;
 }

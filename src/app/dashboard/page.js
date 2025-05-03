@@ -119,7 +119,3 @@ export default function Dashboard() {
   );
 }
 
-// export const metadata = {
-//   title: 'Dashboard - WishAble',
-//   description: 'Manage your wishlist on WishAble.',
-// };
