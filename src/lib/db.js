@@ -21,23 +21,42 @@ const connectDB = async () => {
   
   // If a connection is in progress, wait for it
   if (!cached.promise) {
-    // Get the connection string and database name from config
-    const uri = dbConfig.getConnectionString();
-    const dbName = dbConfig.getDatabaseName();
-    
-    logger.info(`Connecting to MongoDB database: ${dbName}`);
-    
-    // Cache the connection promise
-    cached.promise = mongoose.connect(uri, dbConfig.options)
-      .then((mongoose) => {
-        logger.info(`MongoDB connected successfully to ${dbName}`);
-        return mongoose;
-      })
-      .catch((error) => {
-        logger.error(`MongoDB connection error to ${dbName}:`, error);
-        cached.promise = null;
-        throw error;
+    try {
+      // Get the connection string and database name from config
+      const uri = dbConfig.getConnectionString();
+      const dbName = dbConfig.getDatabaseName();
+      
+      logger.info(`Connecting to MongoDB database: ${dbName}`);
+      console.log(`Connecting to MongoDB database: ${dbName}, Environment: ${process.env.NODE_ENV}`);
+      
+      // Cache the connection promise
+      cached.promise = mongoose.connect(uri, dbConfig.options)
+        .then((mongoose) => {
+          logger.info(`MongoDB connected successfully to ${dbName}`);
+          console.log(`MongoDB connected successfully to ${dbName}`);
+          return mongoose;
+        })
+        .catch((error) => {
+          logger.error(`MongoDB connection error to ${dbName}:`, error);
+          console.error(`MongoDB connection error to ${dbName}:`, {
+            message: error.message,
+            name: error.name,
+            code: error.code,
+            uri: uri.replace(/mongodb\+srv:\/\/[^:]+:[^@]+@/, 'mongodb+srv://[username]:[password]@') // Hide credentials
+          });
+          cached.promise = null;
+          throw error;
+        });
+    } catch (configError) {
+      logger.error('Error getting MongoDB configuration:', configError);
+      console.error('Error getting MongoDB configuration:', {
+        message: configError.message,
+        stack: configError.stack,
+        env: process.env.NODE_ENV,
+        dbName: process.env.MONGODB_DB_NAME
       });
+      throw configError;
+    }
   }
   
   try {

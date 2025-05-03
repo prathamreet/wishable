@@ -61,7 +61,7 @@ const getMongoConnectionString = () => {
 };
 
 /**
- * Validate that we're not using the 'test' database in production
+ * Validate database name for the current environment
  * @param {string} connectionString - The MongoDB connection string
  */
 const validateDatabaseName = (connectionString) => {
@@ -69,6 +69,7 @@ const validateDatabaseName = (connectionString) => {
   const usingTestDb = connectionString.includes('/wishable_test?') || 
                       connectionString.endsWith('/wishable_test');
   
+  // Only validate in production to prevent blocking test/preview environments
   if (usingTestDb && NODE_ENV === 'production') {
     const errorMessage = 'ERROR: Attempting to use the test database in production. ' +
       'This is not allowed for security and data integrity reasons. ' +
@@ -77,6 +78,10 @@ const validateDatabaseName = (connectionString) => {
     console.error('\x1b[31m%s\x1b[0m', errorMessage); // Red text
     throw new Error(errorMessage);
   }
+  
+  // Log the database being used for debugging
+  console.log(`Database validation passed. Using connection string that ends with: ...${connectionString.slice(-30)}`);
+  console.log(`Current environment: ${NODE_ENV}, Database name from env: ${process.env.MONGODB_DB_NAME || 'not set'}`);
 };
 
 // MongoDB connection options

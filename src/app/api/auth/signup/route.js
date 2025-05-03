@@ -113,6 +113,12 @@ const handler = async (req) => {
     await newUser.save();
     console.timeLog('signup-execution', 'User saved');
 
+    // Check if JWT_SECRET is available
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET is not defined in environment variables');
+      return errorResponse('Server configuration error', 500);
+    }
+    
     // Generate JWT token with appropriate expiration
     const token = jwt.sign(
       { 
@@ -164,6 +170,16 @@ const handler = async (req) => {
         return errorResponse('Slug already exists', 400);
       }
     }
+    
+    // Log more detailed error information for debugging
+    console.error('Detailed signup error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code,
+      env: process.env.NODE_ENV,
+      dbName: process.env.MONGODB_DB_NAME
+    });
     
     return errorResponse('Failed to create account', 500);
   }
