@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import logger from './logger';
+import { dbConfig } from '../config/database';
 
 // Cache the database connection
 let cached = global.mongoose;
@@ -19,23 +20,20 @@ const connectDB = async () => {
   
   // If a connection is in progress, wait for it
   if (!cached.promise) {
-    const opts = {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      bufferCommands: false,
-      maxPoolSize: 10, // Keep a pool of connections ready
-      serverSelectionTimeoutMS: 10000, // How long to try connecting before timing out
-      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-    };
+    // Get the connection string and database name from config
+    const uri = dbConfig.getConnectionString();
+    const dbName = dbConfig.getDatabaseName();
+    
+    logger.info(`Connecting to MongoDB database: ${dbName}`);
     
     // Cache the connection promise
-    cached.promise = mongoose.connect(process.env.MONGODB_URI, opts)
+    cached.promise = mongoose.connect(uri, dbConfig.options)
       .then((mongoose) => {
-        logger.info('MongoDB connected successfully');
+        logger.info(`MongoDB connected successfully to ${dbName}`);
         return mongoose;
       })
       .catch((error) => {
-        logger.error('MongoDB connection error:', error);
+        logger.error(`MongoDB connection error to ${dbName}:`, error);
         cached.promise = null;
         throw error;
       });
