@@ -30,13 +30,13 @@ export const viewport = {
 export default function RootLayout({ children }) {
     return (
         <html lang="en" className="h-full scroll-smooth">
-            <body className={`${inter.variable} antialiased h-full transition-colors duration-300`}>
+            <body className={`${inter.variable} antialiased transition-colors duration-300`}>
                 <ThemeProvider>
                     <ToastProvider>
                         <AuthProvider>
                             <div className="min-h-screen flex flex-col">
                                 <Navbar />
-                                <main className="flex-grow pt-16">{children}</main>
+                                <main className="flex-grow">{children}</main>
                                 <Footer />
                             </div>
                         </AuthProvider>

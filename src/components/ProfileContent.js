@@ -167,7 +167,7 @@ export default function ProfileContent({ initialUser }) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-6 border-t  border-gray-200 dark:border-gray-700">
       <div className="mb-8">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-6 mb-6">
           <div className="relative h-24 w-24 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">

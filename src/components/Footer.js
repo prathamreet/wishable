@@ -6,9 +6,9 @@ export default function Footer() {
   const { theme } = useTheme();
 
   return (
-    <footer className="bg-light-card dark:bg-dark-card border-t border-light-border dark:border-dark-border mt-10">
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="flex items-center justify-between">
+    <footer className="bg-light-card dark:bg-dark-card border-t border-light-border dark:border-dark-border">
+      {/* <div className="max-w-7xl mx-auto px-1 py-2"> */}
+        {/* <div className="flex items-center justify-between">
           <div className="flex items-center">
             <Link
               href="/"
@@ -47,12 +47,12 @@ export default function Footer() {
               />
             </svg>
           </a>
-        </div>
+        </div> */}
 
-        <div className="mt-8 pt-6 border-t border-light-border dark:border-dark-border text-center text-sm text-light-text/60 dark:text-dark-text/60">
+      {/* </div> */}
+        <div className="py-4 border-t border-light-border dark:border-dark-border text-center text-sm text-light-text/60 dark:text-dark-text/60">
           <p>&copy; {new Date().getFullYear()} WishAble. All rights reserved.</p>
         </div>
-      </div>
     </footer>
   );
 }

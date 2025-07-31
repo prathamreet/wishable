@@ -1,35 +1,40 @@
-'use client';
-import { useState, useEffect, useContext } from 'react';
-import { useRouter } from 'next/navigation';
-import { AuthContext } from '../../../contexts/AuthContext';
-import Image from 'next/image';
-import Link from 'next/link';
-import LoadingSpinner from '../../../components/LoadingSpinner';
-import logger from '../../../lib/logger';
-import { apiFetch } from '../../../lib/apiUtils';
+"use client";
+import { useState, useEffect, useContext } from "react";
+import { useRouter } from "next/navigation";
+import { AuthContext } from "../../../contexts/AuthContext";
+import Image from "next/image";
+import Link from "next/link";
+import LoadingSpinner from "../../../components/LoadingSpinner";
+import logger from "../../../lib/logger";
+import { apiFetch } from "../../../lib/apiUtils";
 
 export default function ProfileDashboard() {
-  const { user, refreshUserProfile, loading: authLoading, deleteAccount } = useContext(AuthContext);
+  const {
+    user,
+    refreshUserProfile,
+    loading: authLoading,
+    deleteAccount,
+  } = useContext(AuthContext);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState('personal');
+  const [activeTab, setActiveTab] = useState("personal");
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState('');
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
     // Wait for auth state to be determined
     if (authLoading) {
       return;
     }
-    
+
     // If not authenticated, redirect to login
     if (!user || !user.token) {
-      router.replace('/login?redirect=/dashboard/profile');
+      router.replace("/login?redirect=/dashboard/profile");
       return;
     }
 
@@ -37,28 +42,28 @@ export default function ProfileDashboard() {
       try {
         setLoading(true);
         const token = user.token;
-        
+
         // Make API request with proper cache control
-        const data = await apiFetch('/api/user/profile', {
-          method: 'GET',
-          headers: { 
+        const data = await apiFetch("/api/user/profile", {
+          method: "GET",
+          headers: {
             Authorization: `Bearer ${token}`,
-            'Cache-Control': 'no-store',
-            'Pragma': 'no-cache'
-          }
+            "Cache-Control": "no-store",
+            Pragma: "no-cache",
+          },
         });
 
         setProfile(data);
         setError(null);
       } catch (err) {
-        logger.error('Error fetching profile:', err);
+        logger.error("Error fetching profile:", err);
         if (err.status === 401) {
           // Handle token expiration - completely clear auth state
-          setError('Your session has expired. Please log in again.');
-          router.replace('/login?redirect=/dashboard/profile');
+          setError("Your session has expired. Please log in again.");
+          router.replace("/login?redirect=/dashboard/profile");
           return;
         }
-        setError('Failed to load profile. Please try again later.');
+        setError("Failed to load profile. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -73,20 +78,20 @@ export default function ProfileDashboard() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
-    if (name.includes('.')) {
-      const [section, field] = name.split('.');
-      setProfile(prev => ({
+
+    if (name.includes(".")) {
+      const [section, field] = name.split(".");
+      setProfile((prev) => ({
         ...prev,
         [section]: {
           ...prev[section],
-          [field]: value
-        }
+          [field]: value,
+        },
       }));
     } else {
-      setProfile(prev => ({
+      setProfile((prev) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
   };
@@ -96,9 +101,9 @@ export default function ProfileDashboard() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setProfile(prev => ({
+        setProfile((prev) => ({
           ...prev,
-          profilePicture: reader.result
+          profilePicture: reader.result,
         }));
       };
       reader.readAsDataURL(file);
@@ -111,16 +116,16 @@ export default function ProfileDashboard() {
       setSaving(true);
       setSuccess(false);
       setError(null);
-      
+
       const token = user?.token;
-      if (!token) throw new Error('Not authenticated');
+      if (!token) throw new Error("Not authenticated");
 
       // Check if email changed
       if (profile.email !== user.email) {
         // Simple email format validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(profile.email)) {
-          setError('Please enter a valid email address');
+          setError("Please enter a valid email address");
           setSaving(false);
           return;
         }
@@ -129,7 +134,7 @@ export default function ProfileDashboard() {
       // Check if username changed and confirm before proceeding
       if (profile.username !== user.username) {
         const confirmChange = window.confirm(
-          'Changing your username will also change your profile URL. Continue?'
+          "Changing your username will also change your profile URL. Continue?"
         );
         if (!confirmChange) {
           setSaving(false);
@@ -137,45 +142,53 @@ export default function ProfileDashboard() {
         }
       }
 
-      const data = await apiFetch('/api/user/profile', {
-        method: 'PUT',
+      const data = await apiFetch("/api/user/profile", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
-          'Cache-Control': 'no-store',
-          'Pragma': 'no-cache'
+          "Cache-Control": "no-store",
+          Pragma: "no-cache",
         },
-        body: JSON.stringify(profile)
+        body: JSON.stringify(profile),
       });
 
       // Refresh the user context with updated data
       await refreshUserProfile();
-      
+
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       // Don't log expected errors like username or email conflicts
-      const isExpectedError = 
-        err.message.includes('Username is already taken') || 
-        err.message.includes('URL that conflicts') ||
-        err.message.includes('Email is already registered') ||
-        err.message.includes('Invalid email format');
-        
+      const isExpectedError =
+        err.message.includes("Username is already taken") ||
+        err.message.includes("URL that conflicts") ||
+        err.message.includes("Email is already registered") ||
+        err.message.includes("Invalid email format");
+
       if (!isExpectedError) {
-        logger.error('Error updating profile:', err);
+        logger.error("Error updating profile:", err);
       }
-      
+
       // Provide more specific error message
-      if (err.message.includes('Username is already taken')) {
-        setError('This username is already in use. Please choose a different one.');
-      } else if (err.message.includes('URL that conflicts')) {
-        setError('This username would create a URL that conflicts with another user. Please choose a different one.');
-      } else if (err.message.includes('Email is already registered')) {
-        setError('This email address is already registered to another account. Please use a different email.');
-      } else if (err.message.includes('Invalid email format')) {
-        setError('Please enter a valid email address.');
+      if (err.message.includes("Username is already taken")) {
+        setError(
+          "This username is already in use. Please choose a different one."
+        );
+      } else if (err.message.includes("URL that conflicts")) {
+        setError(
+          "This username would create a URL that conflicts with another user. Please choose a different one."
+        );
+      } else if (err.message.includes("Email is already registered")) {
+        setError(
+          "This email address is already registered to another account. Please use a different email."
+        );
+      } else if (err.message.includes("Invalid email format")) {
+        setError("Please enter a valid email address.");
       } else {
-        setError(err.message || 'Failed to update profile. Please try again later.');
+        setError(
+          err.message || "Failed to update profile. Please try again later."
+        );
       }
     } finally {
       setSaving(false);
@@ -190,7 +203,7 @@ export default function ProfileDashboard() {
     return (
       <div className="max-w-4xl mx-auto p-6 text-center">
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-2 rounded">
-          {error || 'Failed to load profile. Please try again later.'}
+          {error || "Failed to load profile. Please try again later."}
         </div>
       </div>
     );
@@ -198,96 +211,92 @@ export default function ProfileDashboard() {
 
   return (
     <div className="animate-fade-in">
-      <div className="bg-indigo-600 text-white py-8">
-        <div className="max-w-4xl mx-auto px-6">
-          <h1 className="text-3xl font-bold mb-2">Profile Management</h1>
-          <p className="text-indigo-200">Update your profile information and preferences</p>
-        </div>
-      </div>
-      
       <div className="max-w-4xl mx-auto p-6">
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-2 rounded mb-4">
             {error}
           </div>
         )}
-        
+
         {success && (
           <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 px-4 py-2 rounded mb-4">
             Profile updated successfully!
           </div>
         )}
 
-        <div className="mb-6 flex justify-between items-center">
-          <div className="flex space-x-2">
-            {/* View Public Profile link removed */}
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">
-              Last updated: {profile.updatedAt ? new Date(profile.updatedAt).toLocaleString() : 'N/A'}
-            </span>
-          </div>
-        </div>
-        
         {/* Tabs Navigation */}
         <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
           <nav className="flex -mb-px">
-            <button
-              onClick={() => setActiveTab('personal')}
-              className={`py-2 px-4 text-center border-b-2 font-medium text-sm ${
-                activeTab === 'personal'
-                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-              }`}
-            >
-              Personal Information
-            </button>
-            <button
-              onClick={() => setActiveTab('address')}
-              className={`py-2 px-4 text-center border-b-2 font-medium text-sm ${
-                activeTab === 'address'
-                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-              }`}
-            >
-              Address
-            </button>
-            <button
-              onClick={() => setActiveTab('security')}
-              className={`py-2 px-4 text-center border-b-2 font-medium text-sm ${
-                activeTab === 'security'
-                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-              }`}
-            >
-              Security
-            </button>
+            <div className="flex justify-space-between flex-grow">
+              <button
+                onClick={() => setActiveTab("personal")}
+                className={`py-2 px-4 text-center border-b-2 font-medium text-sm ${
+                  activeTab === "personal"
+                    ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                }`}
+              >
+                Personal Information
+              </button>
+              <button
+                onClick={() => setActiveTab("address")}
+                className={`py-2 px-4 text-center border-b-2 font-medium text-sm ${
+                  activeTab === "address"
+                    ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                }`}
+              >
+                Address
+              </button>
+              <button
+                onClick={() => setActiveTab("security")}
+                className={`py-2 px-4 text-center border-b-2 font-medium text-sm ${
+                  activeTab === "security"
+                    ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                }`}
+              >
+                Security
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">
+                Last updated:{" "}
+                {profile.updatedAt
+                  ? new Date(profile.updatedAt).toLocaleString()
+                  : "N/A"}
+              </span>
+            </div>
           </nav>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="admin-section animate-fade-in">
           {/* Personal Information Tab */}
-          {activeTab === 'personal' && (
+          {activeTab === "personal" && (
             <div className="space-y-6">
               <div className="mb-6">
-                <h2 className="text-xl font-semibold mb-4 accent-border pl-3">Basic Information</h2>
-                
+                <h2 className="text-xl font-semibold mb-4 accent-border pl-3">
+                  Basic Information
+                </h2>
+
                 <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2">Profile Picture</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Profile Picture
+                  </label>
                   <div className="flex items-center gap-4">
                     <div className="relative h-24 w-24 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800">
                       {profile.profilePicture ? (
-                        <Image 
-                          src={profile.profilePicture} 
-                          alt="Profile picture" 
-                          fill 
+                        <Image
+                          src={profile.profilePicture}
+                          alt="Profile picture"
+                          fill
                           className="object-cover"
                           priority={true}
                         />
                       ) : (
                         <div className="flex items-center justify-center h-full bg-indigo-100 dark:bg-indigo-900/20 text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-                          {profile.username?.charAt(0).toUpperCase() || 'U'}
+                          {profile.username?.charAt(0).toUpperCase() || "U"}
                         </div>
                       )}
                     </div>
@@ -298,46 +307,67 @@ export default function ProfileDashboard() {
                         onChange={handleImageUpload}
                         className="text-sm text-gray-600 dark:text-gray-300 mb-1"
                       />
-                      <p className="text-xs text-gray-500">Recommended: Square image, max 1MB</p>
+                      <p className="text-xs text-gray-500">
+                        Recommended: Square image, max 1MB
+                      </p>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="username" className="block text-sm font-medium mb-1">Username</label>
+                    <label
+                      htmlFor="username"
+                      className="block text-sm font-medium mb-1"
+                    >
+                      Username
+                    </label>
                     <input
                       type="text"
                       id="username"
                       name="username"
-                      value={profile.username || ''}
+                      value={profile.username || ""}
                       onChange={handleInputChange}
                       className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
                       required
                     />
-                    <p className="text-xs text-gray-500 mt-1">This will change your profile URL</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      This will change your profile URL
+                    </p>
                   </div>
-                  
+
                   <div>
-                    <label htmlFor="displayName" className="block text-sm font-medium mb-1">Display Name</label>
+                    <label
+                      htmlFor="displayName"
+                      className="block text-sm font-medium mb-1"
+                    >
+                      Display Name
+                    </label>
                     <input
                       type="text"
                       id="displayName"
                       name="displayName"
-                      value={profile.displayName || ''}
+                      value={profile.displayName || ""}
                       onChange={handleInputChange}
                       className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Shown on your profile to others</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Shown on your profile to others
+                    </p>
                   </div>
-                  
+
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium mb-1"
+                    >
+                      Email
+                    </label>
                     <input
                       type="email"
                       id="email"
                       name="email"
-                      value={profile.email || ''}
+                      value={profile.email || ""}
                       onChange={handleInputChange}
                       className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
                       required
@@ -345,29 +375,41 @@ export default function ProfileDashboard() {
                   </div>
                 </div>
               </div>
-              
+
               <div>
-                <h2 className="text-xl font-semibold mb-4 accent-border pl-3">Contact Details</h2>
+                <h2 className="text-xl font-semibold mb-4 accent-border pl-3">
+                  Contact Details
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="contactDetails.phone" className="block text-sm font-medium mb-1">Phone Number</label>
+                    <label
+                      htmlFor="contactDetails.phone"
+                      className="block text-sm font-medium mb-1"
+                    >
+                      Phone Number
+                    </label>
                     <input
                       type="tel"
                       id="contactDetails.phone"
                       name="contactDetails.phone"
-                      value={profile.contactDetails?.phone || ''}
+                      value={profile.contactDetails?.phone || ""}
                       onChange={handleInputChange}
                       className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
                     />
                   </div>
-                  
+
                   <div>
-                    <label htmlFor="contactDetails.alternateEmail" className="block text-sm font-medium mb-1">Alternate Email</label>
+                    <label
+                      htmlFor="contactDetails.alternateEmail"
+                      className="block text-sm font-medium mb-1"
+                    >
+                      Alternate Email
+                    </label>
                     <input
                       type="email"
                       id="contactDetails.alternateEmail"
                       name="contactDetails.alternateEmail"
-                      value={profile.contactDetails?.alternateEmail || ''}
+                      value={profile.contactDetails?.alternateEmail || ""}
                       onChange={handleInputChange}
                       className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
                     />
@@ -376,68 +418,95 @@ export default function ProfileDashboard() {
               </div>
             </div>
           )}
-          
+
           {/* Address Tab */}
-          {activeTab === 'address' && (
+          {activeTab === "address" && (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold mb-4 accent-border pl-3">Delivery Address</h2>
-              
+              <h2 className="text-xl font-semibold mb-4 accent-border ">
+                Delivery Address
+              </h2>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label htmlFor="address.street" className="block text-sm font-medium mb-1">Street Address</label>
+                  <label
+                    htmlFor="address.street"
+                    className="block text-sm font-medium mb-1"
+                  >
+                    Street Address
+                  </label>
                   <input
                     type="text"
                     id="address.street"
                     name="address.street"
-                    value={profile.address?.street || ''}
+                    value={profile.address?.street || ""}
                     onChange={handleInputChange}
                     className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
                   />
                 </div>
-                
+
                 <div>
-                  <label htmlFor="address.city" className="block text-sm font-medium mb-1">City</label>
+                  <label
+                    htmlFor="address.city"
+                    className="block text-sm font-medium mb-1"
+                  >
+                    City
+                  </label>
                   <input
                     type="text"
                     id="address.city"
                     name="address.city"
-                    value={profile.address?.city || ''}
+                    value={profile.address?.city || ""}
                     onChange={handleInputChange}
                     className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
                   />
                 </div>
-                
+
                 <div>
-                  <label htmlFor="address.state" className="block text-sm font-medium mb-1">State</label>
+                  <label
+                    htmlFor="address.state"
+                    className="block text-sm font-medium mb-1"
+                  >
+                    State
+                  </label>
                   <input
                     type="text"
                     id="address.state"
                     name="address.state"
-                    value={profile.address?.state || ''}
+                    value={profile.address?.state || ""}
                     onChange={handleInputChange}
                     className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
                   />
                 </div>
-                
+
                 <div>
-                  <label htmlFor="address.postalCode" className="block text-sm font-medium mb-1">Postal Code</label>
+                  <label
+                    htmlFor="address.postalCode"
+                    className="block text-sm font-medium mb-1"
+                  >
+                    Postal Code
+                  </label>
                   <input
                     type="text"
                     id="address.postalCode"
                     name="address.postalCode"
-                    value={profile.address?.postalCode || ''}
+                    value={profile.address?.postalCode || ""}
                     onChange={handleInputChange}
                     className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
                   />
                 </div>
-                
+
                 <div>
-                  <label htmlFor="address.country" className="block text-sm font-medium mb-1">Country</label>
+                  <label
+                    htmlFor="address.country"
+                    className="block text-sm font-medium mb-1"
+                  >
+                    Country
+                  </label>
                   <input
                     type="text"
                     id="address.country"
                     name="address.country"
-                    value={profile.address?.country || ''}
+                    value={profile.address?.country || ""}
                     onChange={handleInputChange}
                     className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
                   />
@@ -445,42 +514,66 @@ export default function ProfileDashboard() {
               </div>
             </div>
           )}
-          
+
           {/* Security Tab */}
-          {activeTab === 'security' && (
+          {activeTab === "security" && (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold mb-4 accent-border pl-3">Account Security</h2>
-              
+              <h2 className="text-xl font-semibold mb-4 accent-border ">
+                Account Security
+              </h2>
+
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Password changes and account security settings will be implemented in a future update.
+                Password changes and account security settings will be
+                implemented in a future update.
               </p>
-              
+
               <div className="mb-4">
-                <label htmlFor="role" className="block text-sm font-medium mb-1">Account Role</label>
+                <label
+                  htmlFor="role"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Account Role
+                </label>
                 <input
                   type="text"
                   id="role"
-                  value={profile.role || 'user'}
+                  value={profile.role || "user"}
                   className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 bg-gray-100 dark:bg-gray-800"
                   disabled
                 />
-                <p className="text-xs text-gray-500 mt-1">Your account permissions level</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Your account permissions level
+                </p>
               </div>
-              
+
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Account Status</label>
+                <label className="block text-sm font-medium mb-1">
+                  Account Status
+                </label>
                 <div className="px-3 py-2 rounded bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 inline-flex items-center">
-                  <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   Active
                 </div>
               </div>
-              
+
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Account Created</label>
+                <label className="block text-sm font-medium mb-1">
+                  Account Created
+                </label>
                 <div className="text-gray-700 dark:text-gray-300">
-                  {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString() : 'N/A'}
+                  {profile.createdAt
+                    ? new Date(profile.createdAt).toLocaleDateString()
+                    : "N/A"}
                 </div>
               </div>
 
@@ -489,12 +582,20 @@ export default function ProfileDashboard() {
                 <h2 className="text-xl font-bold text-red-600 dark:text-red-500 mb-4">
                   Delete Account
                 </h2>
-                
+
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4 mb-4">
                   <div className="flex">
                     <div className="flex-shrink-0">
-                      <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      <svg
+                        className="h-5 w-5 text-red-400"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </div>
                     <div className="ml-3">
@@ -503,7 +604,9 @@ export default function ProfileDashboard() {
                       </h3>
                       <div className="mt-2 text-sm text-red-700 dark:text-red-400">
                         <p>
-                          Deleting your account will permanently remove all your data, including your profile information and wishlist. This action cannot be reversed.
+                          Deleting your account will permanently remove all your
+                          data, including your profile information and wishlist.
+                          This action cannot be reversed.
                         </p>
                       </div>
                     </div>
@@ -520,7 +623,7 @@ export default function ProfileDashboard() {
               </div>
             </div>
           )}
-          
+
           <div className="mt-8 flex justify-end">
             <button
               type="submit"
@@ -529,13 +632,31 @@ export default function ProfileDashboard() {
             >
               {saving ? (
                 <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Saving...
                 </>
-              ) : 'Save Changes'}
+              ) : (
+                "Save Changes"
+              )}
             </button>
           </div>
         </form>
@@ -544,19 +665,34 @@ export default function ProfileDashboard() {
       {showDeleteConfirmation && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div 
-              className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" 
+            <div
+              className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
               onClick={() => setShowDeleteConfirmation(false)}
               aria-hidden="true"
             ></div>
 
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <span
+              className="hidden sm:inline-block sm:align-middle sm:h-screen"
+              aria-hidden="true"
+            >
+              &#8203;
+            </span>
 
             <div className="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white dark:bg-gray-800 rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
               <div>
                 <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 dark:bg-red-900 rounded-full">
-                  <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  <svg
+                    className="w-6 h-6 text-red-600 dark:text-red-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
                   </svg>
                 </div>
                 <div className="mt-3 text-center sm:mt-5">
@@ -565,7 +701,8 @@ export default function ProfileDashboard() {
                   </h3>
                   <div className="mt-2">
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      This action cannot be undone. All of your data will be permanently deleted from our servers.
+                      This action cannot be undone. All of your data will be
+                      permanently deleted from our servers.
                     </p>
                   </div>
                 </div>
@@ -591,16 +728,21 @@ export default function ProfileDashboard() {
                   disabled={isDeleting}
                   onClick={async () => {
                     setIsDeleting(true);
-                    setDeleteError('');
+                    setDeleteError("");
                     try {
                       const result = await deleteAccount();
                       if (!result.success) {
-                        setDeleteError(result.error || 'Failed to delete account. Please try again.');
+                        setDeleteError(
+                          result.error ||
+                            "Failed to delete account. Please try again."
+                        );
                         setIsDeleting(false);
                       }
                       // No need to handle success case as AuthContext will redirect the user
                     } catch (error) {
-                      setDeleteError('An unexpected error occurred. Please try again.');
+                      setDeleteError(
+                        "An unexpected error occurred. Please try again."
+                      );
                       setIsDeleting(false);
                     }
                   }}
@@ -608,13 +750,31 @@ export default function ProfileDashboard() {
                 >
                   {isDeleting ? (
                     <span className="flex items-center">
-                      <svg className="w-5 h-5 mr-2 -ml-1 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <svg
+                        className="w-5 h-5 mr-2 -ml-1 text-white animate-spin"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
                       </svg>
                       Deleting...
                     </span>
-                  ) : "Delete Account"}
+                  ) : (
+                    "Delete Account"
+                  )}
                 </button>
               </div>
             </div>
@@ -623,4 +783,4 @@ export default function ProfileDashboard() {
       )}
     </div>
   );
-} 
+}
