@@ -96,26 +96,26 @@ export default function Home() {
   return (
     <div className="animate-fade-in">
       {/* Section 1: Hero Section */}
-      <section className="hero-gradient text-white py-16 sm:py-20 relative">
-        <div className="hero-pattern w-full h-full absolute inset-0 opacity-10"></div>
+      <section className="hero-gradient dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 text-white py-16 sm:py-20 relative">
+        <div className="hero-pattern w-full h-full absolute inset-0 opacity-10 dark:opacity-5"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             <div className="space-y-6">
               {/* Brand Header */}
               <div className="space-y-10">
                 <div className="flex items-center gap-3">
-                  <div className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent"></div>
+                  <div className="h-px flex-1 bg-gradient-to-r from-white/20 dark:from-gray-300/20 to-transparent"></div>
                 </div>
 
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-white via-indigo-100 to-purple-100 bg-clip-text text-transparent">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-white via-indigo-100 to-purple-100 dark:from-gray-100 dark:via-indigo-200 dark:to-purple-200 bg-clip-text text-transparent">
                   Wishable
                 </h1>
 
                 <div className="text-gapes-4">
-                  <div className="text-lg sm:text-xl text-indigo-100 leading-relaxed">
+                  <div className="text-lg sm:text-xl text-indigo-100 dark:text-gray-300 leading-relaxed">
                     Create one comprehensive wishlist from any store across the
                     internet and share it effortlessly with friends and family.
-                    <div className="text-white  font-semibold my-2">
+                    <div className="text-white dark:text-gray-100 font-semibold my-2">
                       No more guessing games or unwanted surprises - just the
                       perfect gifts that truly matter
                     </div>
@@ -130,7 +130,7 @@ export default function Home() {
                     <>
                       <Link
                         href="/dashboard"
-                        className="group bg-white text-indigo-700 hover:bg-indigo-50 px-6 py-4 rounded-xl font-medium transition-all duration-300 text-center transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
+                        className="group bg-white dark:bg-gray-100 text-indigo-700 dark:text-indigo-800 hover:bg-indigo-50 dark:hover:bg-gray-200 px-6 py-4 rounded-xl font-medium transition-all duration-300 text-center transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
                       >
                         <span className="text-lg">📝</span>
                         <span>Go to Your Wishlist</span>
@@ -150,7 +150,7 @@ export default function Home() {
                       </Link>
                       <Link
                         href="/profile"
-                        className="group bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-6 py-4 rounded-xl font-medium transition-all duration-300 text-center transform hover:scale-105 border border-white/20 flex items-center justify-center gap-2"
+                        className="group bg-white/20 dark:bg-gray-800/50 hover:bg-white/30 dark:hover:bg-gray-700/50 backdrop-blur-sm text-white dark:text-gray-200 px-6 py-4 rounded-xl font-medium transition-all duration-300 text-center transform hover:scale-105 border border-white/20 dark:border-gray-600/30 flex items-center justify-center gap-2"
                       >
                         <span className="text-lg">👤</span>
                         <span>View Your Profile</span>
@@ -173,7 +173,7 @@ export default function Home() {
                     <>
                       <Link
                         href="/signup"
-                        className="group bg-white text-indigo-700 hover:bg-indigo-50 px-6 py-4 rounded-xl font-medium transition-all duration-300 text-center transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
+                        className="group bg-white dark:bg-gray-100 text-indigo-700 dark:text-indigo-800 hover:bg-indigo-50 dark:hover:bg-gray-200 px-6 py-4 rounded-xl font-medium transition-all duration-300 text-center transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
                       >
                         <span className="text-lg">✨</span>
                         <span>Create Your Wishlist</span>
@@ -193,7 +193,7 @@ export default function Home() {
                       </Link>
                       <Link
                         href="/login"
-                        className="group bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-6 py-4 rounded-xl font-medium transition-all duration-300 text-center transform hover:scale-105 border border-white/20 flex items-center justify-center gap-2"
+                        className="group bg-white/20 dark:bg-gray-800/50 hover:bg-white/30 dark:hover:bg-gray-700/50 backdrop-blur-sm text-white dark:text-gray-200 px-6 py-4 rounded-xl font-medium transition-all duration-300 text-center transform hover:scale-105 border border-white/20 dark:border-gray-600/30 flex items-center justify-center gap-2"
                       >
                         <span className="text-lg">🔑</span>
                         <span>Log In</span>
@@ -219,13 +219,13 @@ export default function Home() {
 
             {/* Right Side - Keep Jane's Birthday Card As Is */}
             <div className="relative h-75 sm:h-80 lg:h-100 flex items-center justify-center mt-10 lg:mt-0">
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-500/20 rounded-lg blur-xl"></div>
-              <div className="relative bg-white/10 backdrop-blur-md border border-white/20 p-4 sm:p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 hover:bg-white/15 transition-all duration-300 transform hover:scale-105">
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-500/20 dark:from-indigo-500/10 dark:to-purple-400/10 rounded-lg blur-xl"></div>
+              <div className="relative bg-white/10 dark:bg-gray-800/50 backdrop-blur-md border border-white/20 dark:border-gray-600/30 p-4 sm:p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 hover:bg-white/15 dark:hover:bg-gray-700/50 transition-all duration-300 transform hover:scale-105">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-white text-sm sm:text-base">
+                  <h3 className="font-bold text-white dark:text-gray-200 text-sm sm:text-base">
                     Jane's Birthday Wishlist
                   </h3>
-                  <span className="bg-green-400/20 text-green-200 text-xs px-2 py-1 rounded backdrop-blur-sm border border-green-400/30">
+                  <span className="bg-green-400/20 dark:bg-green-500/20 text-green-200 dark:text-green-300 text-xs px-2 py-1 rounded backdrop-blur-sm border border-green-400/30 dark:border-green-500/30">
                     Shareable
                   </span>
                 </div>
@@ -241,25 +241,25 @@ export default function Home() {
                   ].map((item, index) => (
                     <div
                       key={index}
-                      className="p-2 border border-white/10 rounded flex items-center justify-between bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-all duration-300"
+                      className="p-2 border border-white/10 dark:border-gray-600/20 rounded flex items-center justify-between bg-white/5 dark:bg-gray-700/30 backdrop-blur-sm hover:bg-white/10 dark:hover:bg-gray-600/30 transition-all duration-300"
                     >
                       <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 backdrop-blur-sm rounded flex items-center justify-center text-sm sm:text-xl border border-white/20">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 dark:bg-gray-600/50 backdrop-blur-sm rounded flex items-center justify-center text-sm sm:text-xl border border-white/20 dark:border-gray-500/30">
                           {item.icon}
                         </div>
                         <div>
-                          <div className="w-20 sm:w-24 h-2 sm:h-3 bg-white/30 rounded animate-pulse"></div>
-                          <div className="w-12 sm:w-16 h-2 sm:h-3 bg-indigo-300/50 rounded mt-1 animate-pulse delay-75"></div>
+                          <div className="w-20 sm:w-24 h-2 sm:h-3 bg-white/30 dark:bg-gray-400/50 rounded animate-pulse"></div>
+                          <div className="w-12 sm:w-16 h-2 sm:h-3 bg-indigo-300/50 dark:bg-indigo-400/50 rounded mt-1 animate-pulse delay-75"></div>
                         </div>
                       </div>
                       <div className="flex flex-col items-end">
-                        <div className="w-12 sm:w-16 h-2 sm:h-3 bg-white/30 rounded animate-pulse delay-150"></div>
-                        <div className="w-8 sm:w-12 h-2 sm:h-3 bg-green-300/50 rounded mt-1 animate-pulse delay-300"></div>
+                        <div className="w-12 sm:w-16 h-2 sm:h-3 bg-white/30 dark:bg-gray-400/50 rounded animate-pulse delay-150"></div>
+                        <div className="w-8 sm:w-12 h-2 sm:h-3 bg-green-300/50 dark:bg-green-400/50 rounded mt-1 animate-pulse delay-300"></div>
                       </div>
                     </div>
                   ))}
                 </div>
-                <button className="w-full mt-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded transition-all duration-300 text-xs sm:text-sm border border-white/20 transform hover:scale-105">
+                <button className="w-full mt-4 py-2 bg-white/10 dark:bg-gray-600/30 hover:bg-white/20 dark:hover:bg-gray-500/40 backdrop-blur-sm text-white dark:text-gray-200 rounded transition-all duration-300 text-xs sm:text-sm border border-white/20 dark:border-gray-500/30 transform hover:scale-105">
                   View Full Wishlist
                 </button>
               </div>
@@ -267,15 +267,16 @@ export default function Home() {
           </div>
         </div>
       </section>
+
       {/* Section 2: Find Friend's Wishlist */}
-      <section className="hero-gradient text-white py-12 sm:py-16 relative">
-        <div className="hero-pattern w-full h-full absolute inset-0 opacity-5"></div>
+      <section className="hero-gradient dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 text-white py-12 sm:py-16 relative">
+        <div className="hero-pattern w-full h-full absolute inset-0 opacity-5 dark:opacity-3"></div>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 relative text-center">
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 sm:p-8 rounded-xl shadow-xl">
-            <h3 className="text-2xl sm:text-3xl font-bold mb-4">
+          <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-md border border-white/20 dark:border-gray-600/30 p-6 sm:p-8 rounded-xl shadow-xl">
+            <h3 className="text-2xl sm:text-3xl font-bold mb-4 text-white dark:text-gray-100">
               Find a Friend's Wishlist
             </h3>
-            <p className="text-indigo-100 mb-6 text-sm sm:text-base">
+            <p className="text-indigo-100 dark:text-gray-300 mb-6 text-sm sm:text-base">
               Know someone with a Wishable account? Search for their wishlist
               and discover what they're hoping for!
             </p>
@@ -292,25 +293,25 @@ export default function Home() {
                     setSearchError("");
                   }}
                   placeholder="Enter username to find a wishlist"
-                  className="w-full px-4 py-3 rounded-lg text-gray-800 bg-white/90 backdrop-blur-sm border-2 border-transparent focus:border-white focus:outline-none focus:bg-white text-sm sm:text-base transition-all duration-300"
+                  className="w-full px-4 py-3 rounded-lg text-gray-800 dark:text-gray-200 bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border-2 border-transparent focus:border-white dark:focus:border-gray-400 focus:outline-none focus:bg-white dark:focus:bg-gray-700 text-sm sm:text-base transition-all duration-300"
                   aria-label="Search for a user's wishlist by username"
                   disabled={isSearching}
                 />
                 {searchError && (
-                  <p className="text-red-200 text-sm mt-2 text-left">
+                  <p className="text-red-200 dark:text-red-400 text-sm mt-2 text-left">
                     {searchError}
                   </p>
                 )}
               </div>
               <button
                 type="submit"
-                className="bg-white text-indigo-700 hover:bg-indigo-50 px-6 py-3 rounded-lg font-medium transition-all duration-300 disabled:bg-white/70 disabled:text-indigo-500 text-sm sm:text-base transform hover:scale-105 shadow-lg"
+                className="bg-white dark:bg-gray-100 text-indigo-700 dark:text-indigo-800 hover:bg-indigo-50 dark:hover:bg-gray-200 px-6 py-3 rounded-lg font-medium transition-all duration-300 disabled:bg-white/70 dark:disabled:bg-gray-400/70 disabled:text-indigo-500 dark:disabled:text-gray-600 text-sm sm:text-base transform hover:scale-105 shadow-lg"
                 disabled={isSearching}
               >
                 {isSearching ? (
                   <span className="flex items-center justify-center">
                     <svg
-                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-indigo-700"
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-indigo-700 dark:text-indigo-800"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -341,33 +342,33 @@ export default function Home() {
       </section>
 
       {/* Section 3: Simple Steps */}
-      <section className="hero-gradient text-white py-12 sm:py-16 relative">
-        <div className="hero-pattern w-full h-full absolute inset-0 opacity-5"></div>
+      <section className="hero-gradient dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 text-white py-12 sm:py-16 relative">
+        <div className="hero-pattern w-full h-full absolute inset-0 opacity-5 dark:opacity-3"></div>
         <div className="max-w-2xl mx-auto px-4 sm:px-6 relative">
           <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 text-white dark:text-gray-100">
               How It Works
             </h2>
-            <p className="text-indigo-100 text-sm sm:text-base">
+            <p className="text-indigo-100 dark:text-gray-300 text-sm sm:text-base">
               Get started in just three simple steps
             </p>
           </div>
 
           <div className="space-y-6">
             {/* Step 1 */}
-            <div className="flex items-center gap-4 sm:gap-6 bg-white/10 backdrop-blur-md border border-white/20 p-4 sm:p-6 rounded-xl hover:bg-white/15 transition-all duration-300 transform hover:scale-105">
+            <div className="flex items-center gap-4 sm:gap-6 bg-white/10 dark:bg-gray-800/50 backdrop-blur-md border border-white/20 dark:border-gray-600/30 p-4 sm:p-6 rounded-xl hover:bg-white/15 dark:hover:bg-gray-700/50 transition-all duration-300 transform hover:scale-105">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-indigo-500/80 to-purple-600/80 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20">
-                  <span className="text-lg sm:text-xl font-bold text-white">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-indigo-500/80 to-purple-600/80 dark:from-indigo-400/60 dark:to-purple-500/60 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 dark:border-gray-500/30">
+                  <span className="text-lg sm:text-xl font-bold text-white dark:text-gray-200">
                     1
                   </span>
                 </div>
               </div>
               <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">
+                <h3 className="text-lg sm:text-xl font-bold mb-2 text-white dark:text-gray-200">
                   Create Account
                 </h3>
-                <p className="text-indigo-100 text-sm sm:text-base">
+                <p className="text-indigo-100 dark:text-gray-300 text-sm sm:text-base">
                   Sign up for free and set up your personalized wishlist profile
                 </p>
               </div>
@@ -375,19 +376,19 @@ export default function Home() {
             </div>
 
             {/* Step 2 */}
-            <div className="flex items-center gap-4 sm:gap-6 bg-white/10 backdrop-blur-md border border-white/20 p-4 sm:p-6 rounded-xl hover:bg-white/15 transition-all duration-300 transform hover:scale-105">
+            <div className="flex items-center gap-4 sm:gap-6 bg-white/10 dark:bg-gray-800/50 backdrop-blur-md border border-white/20 dark:border-gray-600/30 p-4 sm:p-6 rounded-xl hover:bg-white/15 dark:hover:bg-gray-700/50 transition-all duration-300 transform hover:scale-105">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-purple-500/80 to-pink-600/80 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20">
-                  <span className="text-lg sm:text-xl font-bold text-white">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-purple-500/80 to-pink-600/80 dark:from-purple-400/60 dark:to-pink-500/60 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 dark:border-gray-500/30">
+                  <span className="text-lg sm:text-xl font-bold text-white dark:text-gray-200">
                     2
                   </span>
                 </div>
               </div>
               <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">
+                <h3 className="text-lg sm:text-xl font-bold mb-2 text-white dark:text-gray-200">
                   Add Products
                 </h3>
-                <p className="text-indigo-100 text-sm sm:text-base">
+                <p className="text-indigo-100 dark:text-gray-300 text-sm sm:text-base">
                   Paste product URLs from any online store to build your
                   wishlist
                 </p>
@@ -396,19 +397,19 @@ export default function Home() {
             </div>
 
             {/* Step 3 */}
-            <div className="flex items-center gap-4 sm:gap-6 bg-white/10 backdrop-blur-md border border-white/20 p-4 sm:p-6 rounded-xl hover:bg-white/15 transition-all duration-300 transform hover:scale-105">
+            <div className="flex items-center gap-4 sm:gap-6 bg-white/10 dark:bg-gray-800/50 backdrop-blur-md border border-white/20 dark:border-gray-600/30 p-4 sm:p-6 rounded-xl hover:bg-white/15 dark:hover:bg-gray-700/50 transition-all duration-300 transform hover:scale-105">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-pink-500/80 to-red-600/80 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20">
-                  <span className="text-lg sm:text-xl font-bold text-white">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-pink-500/80 to-red-600/80 dark:from-pink-400/60 dark:to-red-500/60 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 dark:border-gray-500/30">
+                  <span className="text-lg sm:text-xl font-bold text-white dark:text-gray-200">
                     3
                   </span>
                 </div>
               </div>
               <div className="flex-1">
-                <h3 className="text-lg sm:text-xl font-bold mb-2">
+                <h3 className="text-lg sm:text-xl font-bold mb-2 text-white dark:text-gray-200">
                   Share & Receive
                 </h3>
-                <p className="text-indigo-100 text-sm sm:text-base">
+                <p className="text-indigo-100 dark:text-gray-300 text-sm sm:text-base">
                   Share your profile with friends and get the perfect gifts
                 </p>
               </div>
@@ -421,7 +422,7 @@ export default function Home() {
             {!user && (
               <Link
                 href="/signup"
-                className="inline-flex items-center bg-white text-indigo-700 hover:bg-indigo-50 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base transform hover:scale-105"
+                className="inline-flex items-center bg-white dark:bg-gray-100 text-indigo-700 dark:text-indigo-800 hover:bg-indigo-50 dark:hover:bg-gray-200 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base transform hover:scale-105"
               >
                 Start Your Wishlist Today
                 <svg
