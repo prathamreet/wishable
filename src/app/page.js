@@ -99,24 +99,24 @@ export default function Home() {
                 <div className="max-w-7xl mx-auto px-6 relative">
                     <div className="grid md:grid-cols-2 gap-12 items-center">
                         <div className="animate-slide-up">
-                            <h1 className="text-5xl font-bold mb-4">Track Your Wishlist Across All Stores</h1>
+                            <h1 className="text-5xl font-bold mb-4">The Perfect Gift, Every Time.</h1>
                             <p className="text-xl mb-8 text-indigo-100">
-                                Create, manage and share your wishlists from any e-commerce site in one place. Get notified when prices drop!
+                                Create one wishlist from any store and share it with friends and family. No more guessing, just great gifts.
                             </p>
                             <div className="flex flex-wrap gap-4">
                                 {user ? (
                                     <>
                                         <Link href="/dashboard" className="bg-white text-indigo-700 hover:bg-gray-100 px-6 py-3 rounded-lg font-medium transition-colors">
-                                            Go to Dashboard
+                                            Go to Your Wishlist
                                         </Link>
                                         <Link href="/profile" className="bg-indigo-700 hover:bg-indigo-800 text-white px-6 py-3 rounded-lg font-medium transition-colors">
-                                            View My Profile
+                                            View Your Profile
                                         </Link>
                                     </>
                                 ) : (
                                     <>
                                         <Link href="/signup" className="bg-white text-indigo-700 hover:bg-gray-100 px-6 py-3 rounded-lg font-medium transition-colors">
-                                            Get Started for Free
+                                            Create Your Wishlist
                                         </Link>
                                         <Link href="/login" className="bg-indigo-700 hover:bg-indigo-800 text-white px-6 py-3 rounded-lg font-medium transition-colors">
                                             Log In
@@ -127,7 +127,7 @@ export default function Home() {
                             
                             {/* User Search Section */}
                             <div className="mt-8 bg-indigo-800/50 p-4 rounded-lg backdrop-blur-sm">
-                                <h3 className="text-lg font-medium mb-2">Find a User</h3>
+                                <h3 className="text-lg font-medium mb-2">Find a Friend's Wishlist</h3>
                                 <form onSubmit={handleSearch} className="flex items-center gap-2">
                                     <div className="flex-1">
                                         <input 
@@ -137,9 +137,9 @@ export default function Home() {
                                                 setUsername(e.target.value);
                                                 setSearchError('');
                                             }}
-                                            placeholder="Enter username" 
+                                            placeholder="Enter username to find a wishlist" 
                                             className="w-full px-4 py-2 rounded-lg text-gray-800 border-2 border-transparent focus:border-indigo-500 focus:outline-none"
-                                            aria-label="Search for a user by username"
+                                            aria-label="Search for a user's wishlist by username"
                                             disabled={isSearching}
                                         />
                                         {searchError && (
@@ -162,23 +162,25 @@ export default function Home() {
                                         ) : 'Search'}
                                     </button>
                                 </form>
-                                <p className="text-xs text-indigo-200 mt-2">
-                                    Search for users by their username to see their wishlist
-                                </p>
                             </div>
                         </div>
                         <div className="relative h-96 flex items-center justify-center">
+                            {/* New Visual Concept: A stylized, animated gift box that opens to reveal icons of various products (e.g., a book, a game controller, a shirt), representing the variety of gifts one can wish for. */}
                             <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-500 rounded-lg opacity-20 blur-xl"></div>
                             <div className="relative bg-white dark:bg-gray-900 p-6 rounded-lg shadow-xl max-w-sm w-full">
                                 <div className="flex items-center justify-between mb-4">
-                                    <h3 className="font-bold text-gray-800 dark:text-white">My Wishlist</h3>
-                                    <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded dark:bg-green-900 dark:text-green-200">4 items</span>
+                                    <h3 className="font-bold text-gray-800 dark:text-white">Jane's Birthday Wishlist</h3>
+                                    <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded dark:bg-green-900 dark:text-green-200">Shareable</span>
                                 </div>
                                 <div className="space-y-3">
-                                    {[1, 2, 3].map((item) => (
-                                        <div key={item} className="p-2 border border-gray-100 dark:border-gray-700 rounded flex items-center justify-between">
+                                    {[
+                                        { icon: '🎁', name: 'A Cool Gadget', store: 'Amazon' },
+                                        { icon: '🎮', name: 'New Video Game', store: 'Steam' },
+                                        { icon: '📚', name: 'Bestselling Book', store: 'Bookstore' },
+                                    ].map((item, index) => (
+                                        <div key={index} className="p-2 border border-gray-100 dark:border-gray-700 rounded flex items-center justify-between">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                                                <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center text-xl">{item.icon}</div>
                                                 <div>
                                                     <div className="w-24 h-3 bg-gray-300 dark:bg-gray-600 rounded"></div>
                                                     <div className="w-16 h-3 bg-indigo-200 dark:bg-indigo-900 rounded mt-1"></div>
@@ -192,7 +194,7 @@ export default function Home() {
                                     ))}
                                 </div>
                                 <button className="w-full mt-4 py-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded transition-colors text-sm dark:bg-indigo-900/50 dark:hover:bg-indigo-900 dark:text-indigo-300">
-                                    View All Items
+                                    View Full Wishlist
                                 </button>
                             </div>
                         </div>
@@ -254,21 +256,21 @@ export default function Home() {
             <section className="py-16 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
                 <div className="max-w-5xl mx-auto px-6 text-center">
                     <h2 className="text-3xl font-bold mb-4">
-                        {user ? 'Ready to Track More Items?' : 'Ready to Start Tracking?'}
+                        {user ? 'Ready to Add More Wishes?' : 'Ready to Create Your Wishlist?'}
                     </h2>
                     <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
                         {user 
-                            ? 'Add more items to your wishlist and keep track of prices across all your favorite stores.'
-                            : 'Join thousands of users who are saving money and time by using WishAble to track their favorite products.'
+                            ? 'Add more items to your wishlist and share it with your loved ones.'
+                            : 'Join thousands of users who are making gifting easier and more personal with WishAble.'
                         }
                     </p>
                     {user ? (
                         <Link href="/dashboard" className="btn-primary text-lg px-8 py-3">
-                            Go to Dashboard
+                            Go to Your Wishlist
                         </Link>
                     ) : (
                         <Link href="/signup" className="btn-primary text-lg px-8 py-3">
-                            Create Your Free Account
+                            Create Your Free Wishlist
                         </Link>
                     )}
                 </div>

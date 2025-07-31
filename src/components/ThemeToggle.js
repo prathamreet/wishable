@@ -24,7 +24,7 @@ export default function ThemeToggle() {
     <button
       onClick={handleToggle}
       aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-      className={`relative p-2 rounded-full bg-light-accent dark:bg-dark-accent hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 ${isAnimating ? 'scale-110' : ''}`}
+      className={`relative p-2 rounded-full bg-light-accent dark:bg-neutral-700 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 ${isAnimating ? 'scale-110' : ''}`}
       title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
     >
       <div className="relative w-5 h-5">
