@@ -1,10 +1,11 @@
-'use client';
-import { useContext, useState, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { AuthContext } from '../contexts/AuthContext';
-import Link from 'next/link';
-import ThemeToggle from './ThemeToggle';
-import ProfileDropdown from './ProfileDropdown';
+"use client";
+import { useContext, useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { AuthContext } from "../contexts/AuthContext";
+import Link from "next/link";
+import ThemeToggle from "./ThemeToggle";
+import ProfileDropdown from "./ProfileDropdown";
+import OptimizedImage from "./OptimizedImage";
 
 export default function Navbar() {
   const { user, logout } = useContext(AuthContext);
@@ -17,7 +18,7 @@ export default function Navbar() {
   // Handle scroll effect
   useEffect(() => {
     setMounted(true);
-    
+
     const handleScroll = () => {
       if (window.scrollY > 10) {
         setScrolled(true);
@@ -26,38 +27,41 @@ export default function Navbar() {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   // Check if the current path matches the given pattern
   const isActivePath = (path) => {
-    if (path === '/' && pathname === '/') return true;
-    if (path !== '/' && pathname.startsWith(path)) return true;
+    if (path === "/" && pathname === "/") return true;
+    if (path !== "/" && pathname.startsWith(path)) return true;
     return false;
   };
 
   if (!mounted) return null;
 
   return (
-    <nav 
+    <nav
       className={`sticky top-0 z-50 transition-all duration-500 ${
-        scrolled 
-          ? 'bg-white/15 dark:bg-gray-800/50 backdrop-blur-md border-b border-white/30 dark:border-gray-600/30 shadow-xl' 
-          : 'bg-white/10 dark:bg-gray-800/20 backdrop-blur-sm border-b border-white/20 dark:border-gray-600/20'
+        scrolled
+          ? "bg-white/15 dark:bg-gray-800/50 backdrop-blur-md border-b border-white/30 dark:border-gray-600/30 shadow-xl"
+          : "bg-white/10 dark:bg-gray-800/20 backdrop-blur-sm border-b border-white/20 dark:border-gray-600/20"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo */}
           <div className="flex items-center flex-shrink-0">
-            <Link 
-              href="/" 
-              className="group flex items-center transition-all duration-300 transform hover:scale-105"
+            <Link
+              href="/"
+              className="group flex gap-3 items-center transition-all duration-300 transform hover:scale-105"
             >
-              <div className="w-8 h-8 bg-gradient-to-r from-indigo-500/80 to-purple-600/80 dark:from-indigo-400/60 dark:to-purple-500/60 rounded-lg flex items-center justify-center mr-2 shadow-lg group-hover:shadow-xl transition-all duration-300">
-                <span className="text-white font-bold text-sm">W</span>
-              </div>
+              <OptimizedImage
+                src="/favicons/android-chrome-512x512.png"
+                alt="WishAble App Icon"
+                width={40}
+                height={40}
+              />
 
               <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-gray-800 via-indigo-700 to-purple-700 dark:from-gray-100 dark:via-indigo-200 dark:to-purple-200 bg-clip-text text-transparent drop-shadow-sm">
                 <span className="hidden xs:inline">wishAble</span>
@@ -73,11 +77,12 @@ export default function Navbar() {
                 <Link
                   href="/dashboard"
                   className={`transition-all duration-300 px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-medium transform hover:scale-105 ${
-                    isActivePath('/dashboard') && !isActivePath('/dashboard/profile')
-                      ? 'bg-white/25 dark:bg-gray-700/50 text-gray-800 dark:text-gray-100 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 shadow-lg'
-                      : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/15 dark:hover:bg-gray-700/30 backdrop-blur-sm'
+                    isActivePath("/dashboard") &&
+                    !isActivePath("/dashboard/profile")
+                      ? "bg-white/25 dark:bg-gray-700/50 text-gray-800 dark:text-gray-100 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 shadow-lg"
+                      : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/15 dark:hover:bg-gray-700/30 backdrop-blur-sm"
                   }`}
-                  style={{ textShadow: '0 1px 2px rgba(255,255,255,0.5)' }}
+                  style={{ textShadow: "0 1px 2px rgba(255,255,255,0.5)" }}
                 >
                   <span className="hidden lg:inline">Dashboard</span>
                   <span className="lg:hidden">Dash</span>
@@ -85,11 +90,11 @@ export default function Navbar() {
                 <Link
                   href="/profile"
                   className={`transition-all duration-300 px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-medium transform hover:scale-105 ${
-                    isActivePath('/profile')
-                      ? 'bg-white/25 dark:bg-gray-700/50 text-gray-800 dark:text-gray-100 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 shadow-lg'
-                      : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/15 dark:hover:bg-gray-700/30 backdrop-blur-sm'
+                    isActivePath("/profile")
+                      ? "bg-white/25 dark:bg-gray-700/50 text-gray-800 dark:text-gray-100 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 shadow-lg"
+                      : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/15 dark:hover:bg-gray-700/30 backdrop-blur-sm"
                   }`}
-                  style={{ textShadow: '0 1px 2px rgba(255,255,255,0.5)' }}
+                  style={{ textShadow: "0 1px 2px rgba(255,255,255,0.5)" }}
                 >
                   Profile
                 </Link>
@@ -101,11 +106,11 @@ export default function Navbar() {
                 <Link
                   href="/login"
                   className={`transition-all duration-300 px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-medium transform hover:scale-105 ${
-                    isActivePath('/login')
-                      ? 'bg-white/25 dark:bg-gray-700/50 text-gray-800 dark:text-gray-100 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 shadow-lg'
-                      : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/15 dark:hover:bg-gray-700/30 backdrop-blur-sm'
+                    isActivePath("/login")
+                      ? "bg-white/25 dark:bg-gray-700/50 text-gray-800 dark:text-gray-100 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 shadow-lg"
+                      : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/15 dark:hover:bg-gray-700/30 backdrop-blur-sm"
                   }`}
-                  style={{ textShadow: '0 1px 2px rgba(255,255,255,0.5)' }}
+                  style={{ textShadow: "0 1px 2px rgba(255,255,255,0.5)" }}
                 >
                   Login
                 </Link>
@@ -118,7 +123,7 @@ export default function Navbar() {
               </div>
             )}
           </div>
-          
+
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center gap-1 sm:gap-2">
             {user ? (
@@ -129,20 +134,30 @@ export default function Navbar() {
                   className="inline-flex items-center justify-center p-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/15 dark:hover:bg-gray-700/30 backdrop-blur-sm focus:outline-none transition-all duration-300 transform hover:scale-105"
                   aria-expanded={mobileMenuOpen}
                   aria-label="Toggle navigation menu"
-                  style={{ textShadow: '0 1px 2px rgba(255,255,255,0.5)' }}
+                  style={{ textShadow: "0 1px 2px rgba(255,255,255,0.5)" }}
                 >
                   <span className="sr-only">Open main menu</span>
-                  <svg 
-                    className="h-5 w-5 sm:h-6 sm:w-6" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
+                  <svg
+                    className="h-5 w-5 sm:h-6 sm:w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
                     stroke="currentColor"
                     aria-hidden="true"
                   >
                     {mobileMenuOpen ? (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     ) : (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 6h16M4 12h16M4 18h16"
+                      />
                     )}
                   </svg>
                 </button>
@@ -155,20 +170,30 @@ export default function Navbar() {
                   className="ml-1 sm:ml-2 inline-flex items-center justify-center p-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/15 dark:hover:bg-gray-700/30 backdrop-blur-sm focus:outline-none transition-all duration-300 transform hover:scale-105"
                   aria-expanded={mobileMenuOpen}
                   aria-label="Toggle navigation menu"
-                  style={{ textShadow: '0 1px 2px rgba(255,255,255,0.5)' }}
+                  style={{ textShadow: "0 1px 2px rgba(255,255,255,0.5)" }}
                 >
                   <span className="sr-only">Open main menu</span>
-                  <svg 
-                    className="h-5 w-5 sm:h-6 sm:w-6" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
+                  <svg
+                    className="h-5 w-5 sm:h-6 sm:w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
                     stroke="currentColor"
                     aria-hidden="true"
                   >
                     {mobileMenuOpen ? (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     ) : (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 6h16M4 12h16M4 18h16"
+                      />
                     )}
                   </svg>
                 </button>
@@ -177,7 +202,7 @@ export default function Navbar() {
           </div>
         </div>
       </div>
-      
+
       {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white/15 dark:bg-gray-800/50 backdrop-blur-md border-t border-white/30 dark:border-gray-600/30 animate-fade-in shadow-xl">
@@ -187,24 +212,25 @@ export default function Navbar() {
                 <Link
                   href="/dashboard"
                   className={`block px-4 py-3 rounded-lg text-sm sm:text-base font-medium transition-all duration-300 transform hover:scale-105 ${
-                    isActivePath('/dashboard') && !isActivePath('/dashboard/profile')
-                      ? 'bg-white/25 dark:bg-gray-700/50 text-gray-800 dark:text-gray-100 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 shadow-lg'
-                      : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/15 dark:hover:bg-gray-700/30 backdrop-blur-sm'
+                    isActivePath("/dashboard") &&
+                    !isActivePath("/dashboard/profile")
+                      ? "bg-white/25 dark:bg-gray-700/50 text-gray-800 dark:text-gray-100 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 shadow-lg"
+                      : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/15 dark:hover:bg-gray-700/30 backdrop-blur-sm"
                   }`}
                   onClick={() => setMobileMenuOpen(false)}
-                  style={{ textShadow: '0 1px 2px rgba(255,255,255,0.5)' }}
+                  style={{ textShadow: "0 1px 2px rgba(255,255,255,0.5)" }}
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/profile"
                   className={`block px-4 py-3 rounded-lg text-sm sm:text-base font-medium transition-all duration-300 transform hover:scale-105 ${
-                    isActivePath('/profile')
-                      ? 'bg-white/25 dark:bg-gray-700/50 text-gray-800 dark:text-gray-100 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 shadow-lg'
-                      : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/15 dark:hover:bg-gray-700/30 backdrop-blur-sm'
+                    isActivePath("/profile")
+                      ? "bg-white/25 dark:bg-gray-700/50 text-gray-800 dark:text-gray-100 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 shadow-lg"
+                      : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/15 dark:hover:bg-gray-700/30 backdrop-blur-sm"
                   }`}
                   onClick={() => setMobileMenuOpen(false)}
-                  style={{ textShadow: '0 1px 2px rgba(255,255,255,0.5)' }}
+                  style={{ textShadow: "0 1px 2px rgba(255,255,255,0.5)" }}
                 >
                   Profile
                 </Link>
@@ -214,12 +240,12 @@ export default function Navbar() {
                 <Link
                   href="/login"
                   className={`block px-4 py-3 rounded-lg text-sm sm:text-base font-medium transition-all duration-300 transform hover:scale-105 ${
-                    isActivePath('/login')
-                      ? 'bg-white/25 dark:bg-gray-700/50 text-gray-800 dark:text-gray-100 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 shadow-lg'
-                      : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/15 dark:hover:bg-gray-700/30 backdrop-blur-sm'
+                    isActivePath("/login")
+                      ? "bg-white/25 dark:bg-gray-700/50 text-gray-800 dark:text-gray-100 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 shadow-lg"
+                      : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/15 dark:hover:bg-gray-700/30 backdrop-blur-sm"
                   }`}
                   onClick={() => setMobileMenuOpen(false)}
-                  style={{ textShadow: '0 1px 2px rgba(255,255,255,0.5)' }}
+                  style={{ textShadow: "0 1px 2px rgba(255,255,255,0.5)" }}
                 >
                   Login
                 </Link>
