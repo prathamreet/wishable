@@ -1,6 +1,5 @@
 import { load } from 'cheerio';
 import axios from 'axios';
-import cheerio from 'cheerio';
 import logger from './logger';
 
 // Site-specific selectors for better accuracy
