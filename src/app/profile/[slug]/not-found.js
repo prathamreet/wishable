@@ -18,7 +18,7 @@ export default function ProfileNotFound() {
           </div>
           
           <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-indigo-100 to-purple-100 bg-clip-text text-transparent mb-4">
-            Username Doesn&apost Exist
+            Username Doesn{"'"}t Exist
           </h1>
           
           <div className="bg-red-400/20 border border-red-400/30 backdrop-blur-sm rounded-lg p-4 mb-6">
@@ -26,10 +26,10 @@ export default function ProfileNotFound() {
               The username 
               {searchedUsername && (
                 <span className="mx-2 bg-red-500/30 px-2 py-1 rounded font-mono text-sm">
-                  &quot{searchedUsername}&quot
+                  {'"'}{searchedUsername}{'"'}
                 </span>
               )} 
-              doesn&apost exist.
+              doesn{"'"}t exist.
             </p>
           </div>
 

@@ -223,7 +223,7 @@ export default function Home() {
               <div className="relative bg-white/10 dark:bg-gray-800/50 backdrop-blur-md border border-white/20 dark:border-gray-600/30 p-4 sm:p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 hover:bg-white/15 dark:hover:bg-gray-700/50 transition-all duration-300 transform hover:scale-105">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold text-white dark:text-gray-200 text-sm sm:text-base">
-                    Jane&aposs Birthday Wishlist
+                    Jane{"'"}s Birthday Wishlist
                   </h3>
                   <span className="bg-green-400/20 dark:bg-green-500/20 text-green-200 dark:text-green-300 text-xs px-2 py-1 rounded backdrop-blur-sm border border-green-400/30 dark:border-green-500/30">
                     Shareable
@@ -274,11 +274,11 @@ export default function Home() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 relative text-center">
           <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-md border border-white/20 dark:border-gray-600/30 p-6 sm:p-8 rounded-xl shadow-xl">
             <h3 className="text-2xl sm:text-3xl font-bold mb-4 text-white dark:text-gray-100">
-              Find a Friend&aposs Wishlist
+              Find a Friend{"'"}s Wishlist
             </h3>
             <p className="text-indigo-100 dark:text-gray-300 mb-6 text-sm sm:text-base">
               Know someone with a Wishable account? Search for their wishlist
-              and discover what they&aposre hoping for!
+              and discover what they{"'"}re hoping for!
             </p>
             <form
               onSubmit={handleSearch}
