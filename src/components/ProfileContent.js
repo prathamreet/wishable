@@ -356,7 +356,7 @@ export default function ProfileContent({ initialUser }) {
             </div>
             {items.length === 0 ? (
               <div className="space-y-2">
-                <p className="text-xl text-white dark:text-gray-200 font-medium">This user hasn't added any items yet</p>
+                <p className="text-xl text-white dark:text-gray-200 font-medium">This user hasn&apost added any items yet</p>
                 <p className="text-sm text-indigo-100 dark:text-gray-400">Check back later to see their wishlist!</p>
               </div>
             ) : (

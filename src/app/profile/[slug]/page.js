@@ -5,6 +5,7 @@ import User from '../../../models/User';
 import ProfileContent from '../../../components/ProfileContent';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import logger from '../../../lib/logger';
+import Link from 'next/link';
 
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;
@@ -98,13 +99,13 @@ export default async function ProfilePage({ params }) {
                 Try Again
               </button>
               
-              <a
+              <Link
                 href="/"
                 className="bg-white dark:bg-gray-100 text-indigo-700 dark:text-indigo-800 hover:bg-indigo-50 dark:hover:bg-gray-200 px-6 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
               >
                 <span>🏠</span>
                 Go Home
-              </a>
+              </Link>
             </div>
           </div>
         </div>

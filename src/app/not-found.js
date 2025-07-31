@@ -34,7 +34,7 @@ export default function NotFound() {
           </h1>
           
           <p className="text-indigo-100 dark:text-gray-300 text-lg mb-8 leading-relaxed">
-            The page you're looking for doesn't exist or you don't have permission to access it.
+            The page you&aposre looking for doesn&apost exist or you don&apost have permission to access it.
           </p>
           
           {/* Suggestions */}

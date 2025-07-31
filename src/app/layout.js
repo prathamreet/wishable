@@ -13,7 +13,7 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "WishAble - Create & Share Wishlists from Any Online Store",
+  title: "wishAble - Create & Share Wishlists from Any Online Store",
   description:
     "Create beautiful wishlists and add products from any ecommerce site. Share your wishlist with friends and family, track prices, and never forget what you want. Works with Amazon, Flipkart, and 1000+ online stores.",
   keywords:
