@@ -97,7 +97,7 @@ export async function PUT(req, { params }) {
     
     const currentItem = currentUser.wishlist[0].toObject();
     
-    const { scrapeProductDetails } = await import('../../../../lib/scraper');
+    const { scrapeProductDetails } = await import('../../../../scraper/index.js');
     try {
       // Configure scraping options
       const scrapingOptions = {

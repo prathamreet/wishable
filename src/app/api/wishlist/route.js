@@ -51,7 +51,7 @@ export async function POST(req) {
       return errorResponse('URL is required', 400);
     }
     
-    const { scrapeProductDetails } = await import('../../../lib/scraper');
+    const { scrapeProductDetails } = await import('../../../scraper/index.js');
     
     try {
       // Configure scraping options
