@@ -2,23 +2,101 @@ import { load } from 'cheerio';
 import axios from 'axios';
 import logger from './logger';
 
-// Site-specific selectors for better accuracy
+// Enhanced site-specific selectors with comprehensive fallbacks
 const siteSpecificSelectors = {
-  // Major e-commerce platforms
+  // Major e-commerce platforms - ENHANCED
   'amazon': {
-    name: ['#productTitle', '.product-title-word-break', '#title'],
-    price: ['.a-price .a-offscreen', '#priceblock_ourprice', '#price', '.a-price-whole', '.a-color-price'],
-    image: ['#imgTagWrapperId img', '#landingImage', '.a-dynamic-image', '#main-image']
+    name: [
+      '#productTitle',
+      '.product-title-word-break',
+      '#title',
+      'span#productTitle',
+      'h1.a-size-large',
+      'h1[data-feature-name="title"]',
+      '.a-size-large.product-title-word-break',
+      '[data-asin] h1',
+      '.a-text-normal h1'
+    ],
+    price: [
+      '.a-price .a-offscreen',
+      '#priceblock_ourprice',
+      '#priceblock_dealprice',
+      '#price',
+      '.a-price-whole',
+      '.a-color-price',
+      '.a-price.a-text-price.a-size-medium.apexPriceToPay',
+      '.a-price-current .a-offscreen',
+      '.a-price.a-text-price .a-offscreen',
+      '[data-asin-price]',
+      '.a-price-range .a-offscreen',
+      '#corePrice_feature_div .a-price .a-offscreen'
+    ],
+    image: [
+      '#imgTagWrapperId img',
+      '#landingImage',
+      '.a-dynamic-image',
+      '#main-image',
+      '#imgBlkFront',
+      '[data-a-dynamic-image]',
+      '#ebooksImgBlkFront img',
+      '.a-main-image img',
+      '#img-canvas img'
+    ]
   },
   'flipkart': {
-    name: ['.B_NuCI', '._35KyD6', '.product-title'],
-    price: ['._30jeq3', '._1vC4OE', '.product-price'],
-    image: ['._396cs4', '._3BTv9X img', '._2r_T1I']
+    name: [
+      '.B_NuCI',
+      '._35KyD6',
+      '.product-title',
+      'h1._6EBuvT',
+      'h1 span',
+      '.yhZ71d',
+      'span.B_NuCI',
+      'h1[data-testid="product-title"]',
+      '._2cLu-l'
+    ],
+    price: [
+      '._30jeq3',
+      '._1vC4OE',
+      '.product-price',
+      '._3I9_wc._2p6lqe',
+      '._16Jk6d',
+      '._3qQ9m1',
+      'div._25b18c span',
+      'div[data-testid="price-current"]',
+      '._1_WHN1'
+    ],
+    image: [
+      '._396cs4',
+      '._3BTv9X img',
+      '._2r_T1I',
+      'img._396cs4',
+      'div._1BweB8 img',
+      '._2UKpph img',
+      'img[data-testid="product-image"]',
+      '._1BweB8._2UKpph img'
+    ]
   },
   'myntra': {
-    name: ['.pdp-title', '.pdp-name', '.product-title'],
-    price: ['.pdp-price', '.pdp-mrp', '.product-price'],
-    image: ['.image-grid-image', '.image-grid-imageContainer img']
+    name: [
+      '.pdp-title',
+      '.pdp-name',
+      '.product-title',
+      'h1.pdp-title',
+      'h1[data-testid="product-title"]'
+    ],
+    price: [
+      '.pdp-price',
+      '.pdp-mrp',
+      '.product-price',
+      'span.pdp-price',
+      '.price-info strong'
+    ],
+    image: [
+      '.image-grid-image',
+      '.image-grid-imageContainer img',
+      '.pdp-image img'
+    ]
   },
   'ajio': {
     name: ['.prod-name', '.product-title', '.title-wrap'],
@@ -35,7 +113,6 @@ const siteSpecificSelectors = {
     price: ['.payBlkBig', '.product-price', '.price'],
     image: ['.cloudzoom', '.product-image']
   },
-  
   // Electronics retailers
   'bestbuy': {
     name: ['.sku-title h1', '.heading-5', '.product-title'],
@@ -57,106 +134,53 @@ const siteSpecificSelectors = {
     price: ['.price-current', '.product-price', '.price'],
     image: ['.product-view-img-original', '.product-image', '.gallery-image']
   },
-  'croma': {
-    name: ['.pd-title', '.product-title', '.main-product-title'],
-    price: ['.amount', '.price', '.product-price'],
-    image: ['.pd-img', '.product-image']
-  },
-  'reliancedigital': {
-    name: ['.pdp__title', '.product-name', '.title'],
-    price: ['.pdp__price', '.product-price', '.price'],
-    image: ['.pdp__image', '.product-image']
-  },
-  
-  // Tech brands
-  'apple': {
-    name: ['.pd-title', '.product-title', '.rs-product-title'],
-    price: ['.price-point', '.product-price', '.rs-price'],
-    image: ['.pd-img', '.product-image']
-  },
-  'samsung': {
-    name: ['.pd-title', '.product-name', '.product-details__info-title'],
-    price: ['.pd-price', '.product-price', '.product-details__info-price'],
-    image: ['.pd-img', '.product-image']
-  },
-  'dell': {
-    name: ['.pg-title', '.product-title', '.system-title'],
-    price: ['.sale-price', '.product-price', '.price'],
-    image: ['.product-image', '.main-image']
-  },
-  'hp': {
-    name: ['.product-title', '.page-title', '.title'],
-    price: ['.price-wrapper', '.product-price', '.price'],
-    image: ['.product-image', '.gallery-image']
-  },
-  'lenovo': {
-    name: ['.product-title', '.page-title', '.title'],
-    price: ['.final-price', '.product-price', '.price'],
-    image: ['.product-image', '.gallery-image']
-  },
-  
-  // Gaming platforms
-  'gamestheshop': {
-    name: ['.product-name', '.page-title', '.title'],
-    price: ['.price', '.special-price', '.product-price'],
-    image: ['.product-image', '.gallery-image']
+  // Gaming platforms - ONLY Steam and Epic Games
+  'steam': {
+    name: [
+      '.apphub_AppName',
+      '.game_title',
+      '.title',
+      'div.apphub_AppName_row .apphub_AppName',
+      'div.game_title h1',
+      '#appHubAppName'
+    ],
+    price: [
+      '.game_purchase_price',
+      '.discount_final_price',
+      '.price',
+      '.game_area_purchase_game .game_purchase_price',
+      'div.discount_final_price',
+      '.discount_block .discount_final_price'
+    ],
+    image: [
+      '.game_header_image_full',
+      '.main-image',
+      'img.game_header_image_full',
+      '.page_header_image img'
+    ]
   },
   'epicgames': {
-    name: ['.css-rgqwpc', '.product-title', '.title'],
-    price: ['.css-119zqif', '.product-price', '.price'],
-    image: ['.css-1twnz4g', '.product-image']
+    name: [
+      '.css-rgqwpc',
+      '.product-title',
+      '.title',
+      'h1[data-testid="product-title"]',
+      'div[data-component="ProductTitle"] span'
+    ],
+    price: [
+      '.css-119zqif',
+      '.product-price',
+      '.price',
+      '[data-testid="purchase-price"]',
+      'span[data-testid="price-display"]'
+    ],
+    image: [
+      '.css-1twnz4g',
+      '.product-image',
+      'img[data-testid="fallback-image-picture"]',
+      '.css-1q7guxb img'
+    ]
   },
-  'steam': {
-    name: ['.apphub_AppName', '.game_title', '.title'],
-    price: ['.game_purchase_price', '.discount_final_price', '.price'],
-    image: ['.game_header_image_full', '.main-image']
-  },
-  'gog': {
-    name: ['._title-wrapper h1', '.productcard-basics__title', '.title'],
-    price: ['._price-container ._price', '.product-actions-price__final-amount', '.price'],
-    image: ['.productcard-basics__image', '.product-image']
-  },
-  'nintendo': {
-    name: ['.hero-product-title', '.product-title', '.title'],
-    price: ['.product-info-price .sales .price-sales', '.price-sales', '.product-price'],
-    image: ['.hero-product-image img', '.product-image-main img', '.product-image']
-  },
-  'playstation': {
-    name: ['.pdp__title', '.product-name', '.title'],
-    price: ['.price-display__price', '.product-price', '.price'],
-    image: ['.pdp__thumbnail-img', '.product-image-main', '.product-image']
-  },
-  'xbox': {
-    name: ['h1[data-testid="product-title"]', '.ProductDetailsHeader-title', '.title'],
-    price: ['div[data-testid="product-price"]', '.Price-module__boldText', '.price'],
-    image: ['img[data-testid="product-image"]', '.ProductDetailsHeader-image', '.product-image']
-  },
-  'humblebundle': {
-    name: ['.js-human-name', '.product-title', '.title'],
-    price: ['.current-price', '.product-price', '.price'],
-    image: ['.game-image', '.product-image']
-  },
-  'greenmangaming': {
-    name: ['.prod-title', '.product-title', '.title'],
-    price: ['.current-price', '.product-price', '.price'],
-    image: ['.prod-image img', '.product-image']
-  },
-  'fanatical': {
-    name: ['.product-title', '.title'],
-    price: ['.product-price', '.price'],
-    image: ['.product-image img', '.product-image']
-  },
-  'cdkeys': {
-    name: ['.product-name', '.title'],
-    price: ['.price-box .price', '.product-price', '.price'],
-    image: ['.product-image-gallery img', '.product-image']
-  },
-  'gamersgate': {
-    name: ['.product-title', '.title'],
-    price: ['.current-price', '.product-price', '.price'],
-    image: ['.product-image img', '.product-image']
-  },
-  
   // Fashion retailers
   'asos': {
     name: ['h1[data-testid="product-title"]', '.product-title', '.title'],
@@ -172,617 +196,411 @@ const siteSpecificSelectors = {
     name: ['.product-name', '.product-title', '.title'],
     price: ['.product-price', '.price', '.current-price'],
     image: ['.product-detail-main-image-container img', '.product-image', '.gallery-image']
-  },
-  
-  
-  // Home goods
-  'ikea': {
-    name: ['.product-pip-header-section h1', '.product-name', '.title'],
-    price: ['.product-pip-price-package .product-price', '.price', '.current-price'],
-    image: ['.product-pip-sticky-image img', '.product-image', '.gallery-image']
-  },
-  'wayfair': {
-    name: ['.ProductDetailInfoBlock-header h1', '.product-name', '.title'],
-    price: ['.SFPrice', '.price', '.current-price'],
-    image: ['.ProductDetailImageCarousel-image img', '.product-image', '.gallery-image']
-  },
-  
-  // Marketplaces
-  'etsy': {
-    name: ['.wt-text-body-03', '.listing-page-title-component', '.title'],
-    price: ['.wt-text-title-03', '.price', '.current-price'],
-    image: ['.wt-max-width-full', '.listing-page-image', '.gallery-image']
-  },
-  'ebay': {
-    name: ['#itemTitle', '.product-title', '.title'],
-    price: ['#prcIsum', '.product-price', '.price'],
-    image: ['#icImg', '.product-image', '.gallery-image']
-  },
-  
-  // Book retailers
-  'barnesandnoble': {
-    name: ['.pdp-header-title', '.product-name', '.title'],
-    price: ['.price', '.product-price', '.current-price'],
-    image: ['.pdp-image', '.product-image', '.gallery-image']
-  },
-  'bookshop': {
-    name: ['.book-title', '.product-name', '.title'],
-    price: ['.price', '.product-price', '.current-price'],
-    image: ['.book-img', '.product-image', '.gallery-image']
   }
 };
 
-
 /**
- * Parse price text to extract numeric value
- * @param {string} text - Price text to parse
- * @returns {number|null} - Parsed price or null if not found
+ * Enhanced price parsing with multi-currency support
  */
 function parsePrice(text) {
   if (!text) return null;
   
-  // Try to extract currency symbol for later use
-  const currencyMatch = text.match(/([₹$€£¥₩₽₴₺₼₸₿])/);
-  const currencySymbol = currencyMatch ? currencyMatch[1] : null;
+  // Clean the text first
+  const cleanText = text.replace(/\s+/g, ' ').trim();
   
-  // Match any number format (including those with currency symbols)
-  // Support for various currency symbols
-  const match = text.match(/[₹$€£¥₩₽₴₺₼₸₿]?\s*[\d,]+(\.\d+)?/);
+  // Enhanced regex to match various price formats
+  const pricePatterns = [
+    // Indian Rupee formats
+    /₹\s*([0-9,]+(?:\.[0-9]{2})?)/,
+    // Dollar formats
+    /\$\s*([0-9,]+(?:\.[0-9]{2})?)/,
+    // Euro formats
+    /€\s*([0-9,]+(?:\.[0-9]{2})?)/,
+    // Pound formats
+    /£\s*([0-9,]+(?:\.[0-9]{2})?)/,
+    // Generic number with currency symbol
+    /[₹$€£¥₩₽₴₺₼₸₿]\s*([0-9,]+(?:\.[0-9]{2})?)/,
+    // Numbers followed by currency
+    /([0-9,]+(?:\.[0-9]{2})?)\s*[₹$€£¥₩₽₴₺₼₸₿]/,
+    // Pure numbers (last resort)
+    /([0-9,]+(?:\.[0-9]{2})?)/
+  ];
   
-  if (!match) return null;
-  
-  // Remove currency symbols and commas, then parse as float
-  const price = parseFloat(match[0].replace(/[₹$€£¥₩₽₴₺₼₸₿\s,]/g, ''));
-  
-  // Store currency info if we implement currency tracking in the future
-  // For now, just return the numeric value
-  return price;
-}
-
-function findBestMatch(selectors, $, siteSpecific = []) {
-  // Try site-specific selectors first
-  for (const selector of siteSpecific) {
-    const element = $(selector);
-    if (element.length > 0) {
-      const text = element.first().text().trim();
-      if (text) return text;
+  for (const pattern of pricePatterns) {
+    const match = cleanText.match(pattern);
+    if (match && match[1]) {
+      const price = parseFloat(match[1].replace(/,/g, ''));
+      if (!isNaN(price) && price > 0) {
+        return price;
+      }
     }
   }
-  // Fall back to generic selectors
-  for (const selector of selectors) {
-    const element = $(selector);
-    if (element.length > 0) {
-      const text = element.first().text().trim();
-      if (text) return text;
-    }
-  }
-  return null;
-}
-
-function findBestImageMatch(selectors, $, siteSpecific = [], baseUrl = '') {
-  // Try site-specific selectors first
-  for (const selector of siteSpecific) {
-    const element = $(selector);
-    if (element.length > 0) {
-      const imgUrl = element.first().attr('src') || 
-                    element.first().attr('data-src') ||
-                    element.first().attr('data-original') ||
-                    element.first().attr('data-lazy-src');
-      if (imgUrl) return imgUrl;
-    }
-  }
-  // Fall back to generic selectors
-  for (const selector of selectors) {
-    const element = $(selector);
-    if (element.length > 0) {
-      const imgUrl = element.first().attr('src') || 
-                    element.first().attr('data-src') ||
-                    element.first().attr('data-original') ||
-                    element.first().attr('data-lazy-src');
-      if (imgUrl) return imgUrl;
-    }
-  }
+  
   return null;
 }
 
 /**
- * Scrape product details from a URL
- * @param {string} url - Product URL to scrape
- * @param {Object} options - Scraping options
- * @param {boolean} options.allowPartialResults - Whether to return partial results if some fields are missing
- * @param {boolean} options.useProxy - Whether to use a proxy for the request (not implemented yet)
- * @param {Function} options.onStatusUpdate - Callback function to receive status updates during scraping
- * @returns {Object} - Scraped product details with status information
+ * Enhanced element finder with better fallback logic
+ */
+function findBestMatch(selectors, $, siteSpecific = []) {
+  // Try site-specific selectors first with multiple attempts
+  for (const selector of siteSpecific) {
+    const elements = $(selector);
+    for (let i = 0; i < elements.length; i++) {
+      const element = $(elements[i]);
+      const text = element.text()?.trim();
+      if (text && text.length > 2) { // Minimum length check
+        return text;
+      }
+    }
+  }
+  
+  // Fall back to generic selectors
+  for (const selector of selectors) {
+    const elements = $(selector);
+    for (let i = 0; i < elements.length; i++) {
+      const element = $(elements[i]);
+      const text = element.text()?.trim();
+      if (text && text.length > 2) {
+        return text;
+      }
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Enhanced image finder with URL resolution
+ */
+function findBestImageMatch(selectors, $, siteSpecific = [], baseUrl = '') {
+  const imageAttributes = ['src', 'data-src', 'data-original', 'data-lazy-src', 'data-zoom-image', 'data-large-image'];
+  
+  // Try site-specific selectors first
+  for (const selector of siteSpecific) {
+    const elements = $(selector);
+    for (let i = 0; i < elements.length; i++) {
+      const element = $(elements[i]);
+      
+      // Try multiple image attributes
+      for (const attr of imageAttributes) {
+        const imgUrl = element.attr(attr);
+        if (imgUrl && imgUrl.length > 10 && !imgUrl.includes('data:image/svg')) {
+          return resolveImageUrl(imgUrl, baseUrl);
+        }
+      }
+    }
+  }
+  
+  // Fall back to generic selectors
+  for (const selector of selectors) {
+    const elements = $(selector);
+    for (let i = 0; i < elements.length; i++) {
+      const element = $(elements[i]);
+      
+      for (const attr of imageAttributes) {
+        const imgUrl = element.attr(attr);
+        if (imgUrl && imgUrl.length > 10 && !imgUrl.includes('data:image/svg')) {
+          return resolveImageUrl(imgUrl, baseUrl);
+        }
+      }
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Resolve relative image URLs to absolute URLs
+ */
+function resolveImageUrl(imgUrl, baseUrl) {
+  if (!imgUrl) return null;
+  
+  // If already absolute, return as is
+  if (imgUrl.startsWith('http')) {
+    return imgUrl;
+  }
+  
+  // Handle protocol-relative URLs
+  if (imgUrl.startsWith('//')) {
+    return 'https:' + imgUrl;
+  }
+  
+  // Handle relative URLs
+  if (baseUrl) {
+    try {
+      return new URL(imgUrl, baseUrl).toString();
+    } catch (e) {
+      logger.warn('Failed to resolve image URL:', imgUrl, baseUrl);
+    }
+  }
+  
+  return imgUrl;
+}
+
+/**
+ * Enhanced structured data extraction
+ */
+function extractStructuredData($) {
+  let structuredData = null;
+  
+  try {
+    const jsonLdScripts = $('script[type="application/ld+json"]');
+    
+    jsonLdScripts.each((i, script) => {
+      if (structuredData) return; // Already found data
+      
+      try {
+        const scriptContent = $(script).html();
+        if (!scriptContent) return;
+        
+        const parsedData = JSON.parse(scriptContent);
+        
+        // Handle different data structures
+        if (Array.isArray(parsedData)) {
+          structuredData = parsedData.find(item =>
+            ['Product', 'VideoGame', 'SoftwareApplication'].includes(item['@type']) ||
+            (Array.isArray(item['@type']) && item['@type'].some(type => 
+              ['Product', 'VideoGame', 'SoftwareApplication'].includes(type)
+            ))
+          );
+        } else if (parsedData['@type'] && (
+          ['Product', 'VideoGame', 'SoftwareApplication'].includes(parsedData['@type']) ||
+          (Array.isArray(parsedData['@type']) && parsedData['@type'].some(type => 
+            ['Product', 'VideoGame', 'SoftwareApplication'].includes(type)
+          ))
+        )) {
+          structuredData = parsedData;
+        } else if (parsedData['@graph'] && Array.isArray(parsedData['@graph'])) {
+          structuredData = parsedData['@graph'].find(item =>
+            ['Product', 'VideoGame', 'SoftwareApplication'].includes(item['@type']) ||
+            (Array.isArray(item['@type']) && item['@type'].some(type => 
+              ['Product', 'VideoGame', 'SoftwareApplication'].includes(type)
+            ))
+          );
+        }
+      } catch (e) {
+        // Skip invalid JSON-LD
+      }
+    });
+  } catch (e) {
+    logger.error('Failed to parse structured data:', e);
+  }
+  
+  return structuredData;
+}
+
+/**
+ * Enhanced product details scraper
  */
 export async function scrapeProductDetails(url, options = {}) {
-  // Default options
   const {
     allowPartialResults = true,
     useProxy = false,
-    timeout = 20000,
-    retries = 1,
+    timeout = 25000, // Increased timeout
+    retries = 2, // Increased retries
     onStatusUpdate = null
   } = options;
-  
-  // Helper function to send status updates if callback is provided
+
   const updateStatus = (message, type = 'info') => {
     if (typeof onStatusUpdate === 'function') {
       onStatusUpdate(message, type);
     }
   };
 
-  // Validate URL
   if (!url || typeof url !== 'string') {
     throw new Error('Invalid URL provided');
   }
 
   try {
-    updateStatus('Starting scraping process...', 'info');
+    updateStatus('Starting enhanced scraping process...', 'info');
     
-    // Parse URL and get domain
     const urlObj = new URL(url);
     const domain = urlObj.hostname.replace('www.', '');
+    const baseUrl = urlObj.origin;
+    
     updateStatus(`Analyzing domain: ${domain}`, 'info');
     
     // Find matching site configuration
     const siteKey = Object.keys(siteSpecificSelectors).find(key => domain.includes(key));
     const siteConfig = siteKey ? siteSpecificSelectors[siteKey] : null;
-
-    // Initialize warnings array to track issues
+    
     const warnings = [];
     
-    // Log if we don't have site-specific selectors
     if (!siteConfig) {
-      logger.info(`No site-specific selectors for domain: ${domain}. Using generic selectors.`);
-      warnings.push('Using generic selectors for this website. Results may be less accurate.');
-      updateStatus(`No specific configuration for ${domain}. Using generic product detection.`, 'warning');
+      logger.info(`No site-specific selectors for domain: ${domain}. Using enhanced generic selectors.`);
+      warnings.push('Using enhanced generic selectors for this website.');
+      updateStatus(`Using enhanced generic detection for ${domain}`, 'warning');
     } else {
       updateStatus(`Found optimized configuration for ${domain}`, 'success');
     }
 
-    // Implement retry logic
+    // Enhanced retry logic with exponential backoff
     let lastError = null;
     let response = null;
-    
-    updateStatus('Preparing to fetch product page...', 'info');
     
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
         if (attempt > 0) {
-          // Add exponential backoff between retries
           const backoffTime = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
-          logger.info(`Retry attempt ${attempt}/${retries} for ${url} after ${backoffTime}ms`);
-          updateStatus(`Request failed. Retrying (${attempt}/${retries})...`, 'warning');
+          updateStatus(`Retry attempt ${attempt}/${retries} after ${Math.round(backoffTime)}ms...`, 'warning');
           await new Promise(resolve => setTimeout(resolve, backoffTime));
         }
-        
-        // Fetch the page with appropriate headers
-        // Add a random delay before making the request to reduce the chance of being rate-limited
-        const randomDelay = Math.floor(Math.random() * 2000) + 1000; // Random delay between 1-3 seconds
+
+        // Enhanced request with better headers
+        const userAgents = [
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0'
+        ];
+
+        const randomDelay = Math.floor(Math.random() * 2000) + 1000;
         await new Promise(resolve => setTimeout(resolve, randomDelay));
         
-        updateStatus('Connecting to product page...', 'info');
-        
-        // Randomize user agent to appear more like a regular browser
-        const userAgents = [
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Safari/605.1.15',
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:90.0) Gecko/20100101 Firefox/90.0',
-          'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36'
-        ];
-        const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
-        updateStatus('Sending HTTP request...', 'info');
+        updateStatus('Sending HTTP request with enhanced headers...', 'info');
         
         response = await axios.get(url, {
           headers: {
-            'User-Agent': randomUserAgent,
-            'Accept': 'text/html,application/xhtml+xml,application/xml',
+            'User-Agent': userAgents[Math.floor(Math.random() * userAgents.length)],
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
             'Cache-Control': 'no-cache',
             'Pragma': 'no-cache',
-            'Referer': 'https://www.google.com/', // Add referer to reduce blocking
-            'Connection': 'keep-alive'
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Upgrade-Insecure-Requests': '1'
           },
           timeout: timeout,
-          // Set maximum number of redirects to prevent infinite redirect loops
           maxRedirects: 5,
-          // Allow all status codes so we can handle them in our own logic
-          validateStatus: () => true,
-          // Prevent cookies from being sent in subsequent requests
-          withCredentials: false
+          validateStatus: () => true
         });
-        
-        updateStatus('Response received from server', 'info');
-        
-        // Check the response status
+
         if (response.status === 200) {
-          // If we got a successful response, break out of the retry loop
           updateStatus('Successfully retrieved product page', 'success');
           break;
-        } else if (response.status === 429 || response.status === 529) {
-          logger.warn(`Rate limited (HTTP ${response.status}) on attempt ${attempt}/${retries}. Will retry.`);
-          updateStatus(`Rate limited (HTTP ${response.status}). Website is blocking our request.`, 'error');
+        } else if ([429, 503, 529].includes(response.status)) {
           lastError = new Error('Rate limited by the website. Please try again later.');
-          // Continue to next retry attempt
           continue;
         } else if (response.status === 403) {
-          logger.warn(`Access denied (HTTP ${response.status}) on attempt ${attempt}/${retries}. Will retry.`);
-          updateStatus('Access denied (HTTP 403). Website is blocking our request.', 'error');
-          lastError = new Error('Access denied by the website. The site might be blocking our requests.');
-          // Continue to next retry attempt
-          continue;
-        } else if (response.status >= 500) {
-          logger.warn(`Server error (HTTP ${response.status}) on attempt ${attempt}/${retries}. Will retry.`);
-          lastError = new Error(`Server error (HTTP ${response.status}). The website might be experiencing issues.`);
-          // Continue to next retry attempt
+          lastError = new Error('Access denied by the website.');
           continue;
         } else if (response.status === 404) {
-          // Don't retry for 404 - the product doesn't exist
-          throw new Error('Product not found. The URL might be invalid or the product might have been removed.');
+          throw new Error('Product not found.');
+        } else if (response.status >= 500) {
+          lastError = new Error(`Server error (HTTP ${response.status}).`);
+          continue;
         } else {
-          // Don't retry for other status codes
           throw new Error(`Failed to fetch page: HTTP ${response.status}`);
         }
       } catch (err) {
-        // Handle Axios errors specifically
-        if (err.isAxiosError) {
-          // If it's a response error with status code
-          if (err.response) {
-            const status = err.response.status;
-            
-            if (status === 429 || status === 529) {
-              logger.warn(`Rate limited (HTTP ${status}) on attempt ${attempt}/${retries}. Will retry.`);
-              lastError = new Error(`Rate limited by the website. Please try again later.`);
-            } else if (status === 403) {
-              logger.warn(`Access denied (HTTP ${status}) on attempt ${attempt}/${retries}. Will retry.`);
-              lastError = new Error(`Access denied by the website. The site might be blocking our requests.`);
-            } else if (status >= 500) {
-              logger.warn(`Server error (HTTP ${status}) on attempt ${attempt}/${retries}. Will retry.`);
-              lastError = new Error(`Server error (HTTP ${status}). The website might be experiencing issues.`);
-            } else if (status === 404) {
-              // Don't retry for 404
-              throw new Error('Product not found. The URL might be invalid or the product might have been removed.');
-            } else {
-              // Don't retry for other status codes
-              throw new Error(`Failed to fetch page: HTTP ${status}`);
-            }
-          } else if (err.code === 'ECONNABORTED') {
-            logger.warn(`Request timeout on attempt ${attempt}/${retries}. Will retry.`);
-            lastError = new Error('Request timed out. The website might be slow or blocking our requests.');
-          } else if (err.code === 'ENOTFOUND') {
-            // Don't retry for invalid domains
-            throw new Error('Domain not found. Please check the URL and try again.');
-          } else {
-            // For other Axios errors, log and retry
-            logger.warn(`Axios error on attempt ${attempt}/${retries}: ${err.message}`);
-            lastError = err;
-          }
-        } else {
-          // For non-Axios errors
-          lastError = err;
-        }
-        
-        // If it's the last attempt, we'll throw the error after the loop
+        lastError = err;
         if (attempt === retries) {
-          // If it's an Axios error, create a more user-friendly error
-          if (err.isAxiosError && err.response) {
-            const status = err.response.status;
-            if (status === 429 || status === 529) {
-              throw new Error('Rate limited by the website. Please try again later.');
-            } else if (status === 403) {
-              throw new Error('Access denied by the website. The site might be blocking our requests.');
-            } else if (status >= 500) {
-              throw new Error(`Server error (HTTP ${status}). The website might be experiencing issues.`);
-            }
-          }
-          throw lastError || err;
+          throw lastError;
         }
-        // Otherwise continue to the next retry attempt
       }
     }
+
+    if (!response || response.status !== 200) {
+      throw lastError || new Error('Failed to fetch the page after all retries');
+    }
+
+    updateStatus('Parsing HTML with enhanced extraction...', 'info');
     
-    // If we've exhausted all retries and still have an error, throw it
-    if (lastError && (!response || response.status !== 200)) {
-      throw lastError;
-    }
-
-    // Check for non-200 status codes
-    if (response.status !== 200) {
-      if (response.status === 403) {
-        throw new Error('Access denied by the website. The site might be blocking our requests.');
-      } else if (response.status === 404) {
-        throw new Error('Product not found. The URL might be invalid or the product might have been removed.');
-      } else if (response.status >= 400) {
-        throw new Error(`Failed to fetch page: HTTP ${response.status}`);
-      }
-    }
-
-    // Parse HTML
-    updateStatus('Parsing HTML content...', 'info');
     const html = response.data;
     const $ = load(html);
-    updateStatus('HTML parsed successfully', 'success');
-
-    // Start extracting product information
-    updateStatus('Extracting product details...', 'info');
     
-    // Common selectors for product names
-    const nameSelectors = [
-      // Schema.org metadata
+    // Enhanced structured data extraction
+    const structuredData = extractStructuredData($);
+    
+    // Enhanced selectors for different data types
+    const enhancedNameSelectors = [
       'meta[property="og:title"]',
       'meta[name="og:title"]',
       'meta[property="product:title"]',
       'meta[name="title"]',
-      // Common product title selectors
       'h1[class*="title" i]',
       'h1[class*="name" i]',
       'h1[class*="product" i]',
-      'div[class*="title" i]',
-      'div[class*="name" i]',
-      'span[class*="title" i]',
-      'span[class*="name" i]',
-      '#title',
-      '#product-title',
-      '#product-name',
-      '.product-title',
-      '.product-name',
-      '.title',
-      'h1', // Fallback to first h1
-      'title' // Last resort: page title
+      'h1[id*="title" i]',
+      'h1[id*="name" i]',
+      'h1[id*="product" i]',
+      'h1',
+      'title'
     ];
 
-    // Common selectors for prices
-    const priceSelectors = [
-      // Schema.org metadata
+    const enhancedPriceSelectors = [
       'meta[property="product:price:amount"]',
       'meta[property="og:price:amount"]',
       'meta[name="price"]',
-      // Common price selectors
-      'span[class*="price" i]:not([class*="old" i]):not([class*="regular" i]):not([class*="original" i])',
-      'div[class*="price" i]:not([class*="old" i]):not([class*="regular" i]):not([class*="original" i])',
-      'p[class*="price" i]:not([class*="old" i]):not([class*="regular" i]):not([class*="original" i])',
-      '*[class*="current-price" i]',
-      '*[class*="sale-price" i]',
-      '*[class*="special-price" i]',
-      '*[class*="offer-price" i]',
-      '*[class*="final-price" i]',
-      '#price',
-      '.price',
-      '[itemprop="price"]'
+      '[itemprop="price"]',
+      '[data-testid*="price"]',
+      '[class*="price"]:not([class*="old"]):not([class*="regular"]):not([class*="original"])',
+      '[class*="current-price"]',
+      '[class*="sale-price"]',
+      '[class*="special-price"]',
+      '[class*="offer-price"]',
+      '[class*="final-price"]'
     ];
 
-    // Common selectors for product images
-    const imageSelectors = [
-      // Schema.org metadata
+    const enhancedImageSelectors = [
       'meta[property="og:image"]',
       'meta[property="og:image:secure_url"]',
       'meta[name="og:image"]',
-      // Common image selectors
-      'img[class*="product" i]',
-      'img[class*="main" i]',
-      'img[id*="product" i]',
-      'img[id*="main" i]',
-      '*[class*="product-image" i] img',
-      '*[class*="main-image" i] img',
-      '*[class*="gallery" i] img',
-      '*[class*="hero" i] img',
-      '*[class*="featured" i] img',
-      // Fallback to first large image
-      'img[width][height]',
-      // Last resort: any image
-      'img'
+      'link[rel="image_src"]',
+      'img[class*="product"]',
+      'img[class*="main"]',
+      'img[id*="product"]',
+      'img[id*="main"]',
+      'img[data-testid*="image"]'
     ];
 
-    // Try to get data from structured data first (JSON-LD)
-    let structuredData = null;
-    try {
-      // Look for JSON-LD data
-      const jsonLdScripts = $('script[type="application/ld+json"]');
-      
-      if (jsonLdScripts.length > 0) {
-        // Try each script until we find product data
-        jsonLdScripts.each((i, script) => {
-          if (structuredData) return; // Already found data
-          
-          try {
-            const scriptContent = $(script).html();
-            if (!scriptContent) return;
-            
-            const parsedData = JSON.parse(scriptContent);
-            
-            // Handle array of objects
-            if (Array.isArray(parsedData)) {
-              // First look for Product type
-              structuredData = parsedData.find(item => 
-                item['@type'] === 'Product' || 
-                (Array.isArray(item['@type']) && item['@type'].includes('Product'))
-              );
-              
-              // If no Product found, check for VideoGame type (for gaming sites)
-              if (!structuredData) {
-                structuredData = parsedData.find(item => 
-                  item['@type'] === 'VideoGame' || 
-                  (Array.isArray(item['@type']) && item['@type'].includes('VideoGame'))
-                );
-              }
-              
-              // If no VideoGame found, check for SoftwareApplication type (for gaming and software sites)
-              if (!structuredData) {
-                structuredData = parsedData.find(item => 
-                  item['@type'] === 'SoftwareApplication' || 
-                  (Array.isArray(item['@type']) && item['@type'].includes('SoftwareApplication'))
-                );
-              }
-            } 
-            // Handle single object
-            else if (
-              parsedData['@type'] === 'Product' || 
-              parsedData['@type'] === 'VideoGame' ||
-              parsedData['@type'] === 'SoftwareApplication' ||
-              (Array.isArray(parsedData['@type']) && (
-                parsedData['@type'].includes('Product') || 
-                parsedData['@type'].includes('VideoGame') ||
-                parsedData['@type'].includes('SoftwareApplication')
-              ))
-            ) {
-              structuredData = parsedData;
-            }
-            // Handle nested objects (e.g., in a @graph property)
-            else if (parsedData['@graph'] && Array.isArray(parsedData['@graph'])) {
-              // First look for Product type
-              structuredData = parsedData['@graph'].find(item => 
-                item['@type'] === 'Product' || 
-                (Array.isArray(item['@type']) && item['@type'].includes('Product'))
-              );
-              
-              // If no Product found, check for VideoGame type
-              if (!structuredData) {
-                structuredData = parsedData['@graph'].find(item => 
-                  item['@type'] === 'VideoGame' || 
-                  (Array.isArray(item['@type']) && item['@type'].includes('VideoGame'))
-                );
-              }
-              
-              // If no VideoGame found, check for SoftwareApplication type
-              if (!structuredData) {
-                structuredData = parsedData['@graph'].find(item => 
-                  item['@type'] === 'SoftwareApplication' || 
-                  (Array.isArray(item['@type']) && item['@type'].includes('SoftwareApplication'))
-                );
-              }
-            }
-          } catch (e) {
-            // Just skip this script if it's invalid
-          }
-        });
-      }
-    } catch (e) {
-      logger.error('Failed to parse structured data:', e);
-    }
-
-    // Get product name
+    // Extract product name
     let name = null;
     if (structuredData?.name) {
       name = structuredData.name;
     } else {
-      // Try meta tags first
-      const metaTitle = $('meta[property="og:title"]').attr('content') ||
-                       $('meta[name="og:title"]').attr('content') ||
-                       $('meta[property="product:title"]').attr('content') ||
-                       $('meta[name="title"]').attr('content');
-      if (metaTitle) {
-        name = metaTitle;
-      } else {
-        name = findBestMatch(nameSelectors, $, siteConfig?.name || []);
-      }
+      name = findBestMatch(enhancedNameSelectors, $, siteConfig?.name || []);
     }
 
-    // Get product price
+    // Extract price
     let price = null;
-    
-    // Check for price in structured data
     if (structuredData?.offers?.price) {
       price = parseFloat(structuredData.offers.price);
     } else if (structuredData?.offers && Array.isArray(structuredData.offers) && structuredData.offers[0]?.price) {
       price = parseFloat(structuredData.offers[0].price);
-    } else if (structuredData?.offers?.lowPrice) {
-      // Some sites use lowPrice for sales or ranges
-      price = parseFloat(structuredData.offers.lowPrice);
-    } else if (structuredData?.price) {
-      // Direct price property (sometimes used in VideoGame type)
-      price = parseFloat(structuredData.price);
     } else {
-      // Check meta tags
-      const metaPrice = $('meta[property="product:price:amount"]').attr('content') ||
-                       $('meta[property="og:price:amount"]').attr('content') ||
-                       $('meta[name="price"]').attr('content') ||
-                       $('meta[itemprop="price"]').attr('content');
-      if (metaPrice) {
-        price = parseFloat(metaPrice);
-      } else {
-        // Special handling for gaming sites
-        const isGamingSite = [
-          'steam', 'epicgames', 'gog', 'nintendo', 'playstation', 'xbox', 
-          'humblebundle', 'greenmangaming', 'fanatical', 'cdkeys', 'gamersgate'
-        ].some(site => domain.includes(site));
-        
-        if (isGamingSite) {
-          // Try to find discounted price first
-          const discountSelectors = [
-            '.discount_final_price',
-            '.sale-price',
-            '.discounted-price',
-            '.special-price',
-            '.current-price',
-            '[data-price-type="finalPrice"]',
-            '.price--discounted',
-            '.price--sales'
-          ];
-          
-          const discountedPriceText = findBestMatch(discountSelectors, $, []);
-          if (discountedPriceText) {
-            price = parsePrice(discountedPriceText);
-          }
-        }
-        
-        // If no price found yet, try regular selectors
-        if (!price) {
-          const priceText = findBestMatch(priceSelectors, $, siteConfig?.price || []);
-          price = parsePrice(priceText);
-        }
-        
-        // For free games/items
-        if (!price) {
-          const freeText = findBestMatch([
-            '.game_purchase_price:contains("Free")',
-            '.price:contains("Free")',
-            '.price:contains("$0")',
-            '.price:contains("0.00")',
-            '.price-display__price:contains("Free")'
-          ], $, []);
-          
-          if (freeText && /free|0\.00|\$0/i.test(freeText)) {
-            price = 0;
-          }
-        }
-      }
+      const priceText = findBestMatch(enhancedPriceSelectors, $, siteConfig?.price || []);
+      price = parsePrice(priceText);
     }
 
-    // Get product image
+    // Extract image
     let thumbnail = null;
     if (structuredData?.image) {
       thumbnail = Array.isArray(structuredData.image) ? structuredData.image[0] : structuredData.image;
     } else {
-      // Try meta tags first
-      const metaImage = $('meta[property="og:image"]').attr('content') ||
-                       $('meta[property="og:image:secure_url"]').attr('content') ||
-                       $('meta[name="og:image"]').attr('content');
-      if (metaImage) {
-        thumbnail = metaImage;
-      } else {
-        thumbnail = findBestImageMatch(imageSelectors, $, siteConfig?.image || [], urlObj.origin);
-      }
+      thumbnail = findBestImageMatch(enhancedImageSelectors, $, siteConfig?.image || [], baseUrl);
     }
 
-    // Clean and validate the data
+    // Enhanced data validation and cleanup
     let isComplete = true;
-    
-    // Handle missing name
+
     if (!name) {
       if (allowPartialResults) {
-        name = "Unknown Product";
+        name = "Product Name Not Available";
         warnings.push('Could not extract product name');
         isComplete = false;
       } else {
         throw new Error('Failed to extract product name');
       }
     } else {
-      // Clean up the name (remove site name if present)
-      name = name.split('|')[0].split('-')[0].trim();
+      // Clean up name
+      name = name.split('|')[0].split('-')[0].split(',')[0].trim();
+      name = name.replace(/\s+/g, ' ').trim();
     }
-    
-    // Handle missing price
-    if (!price) {
+
+    if (!price || isNaN(price)) {
       if (allowPartialResults) {
         price = 0;
         warnings.push('Could not extract product price');
@@ -791,8 +609,7 @@ export async function scrapeProductDetails(url, options = {}) {
         throw new Error('Failed to extract product price');
       }
     }
-    
-    // Handle missing thumbnail
+
     if (!thumbnail) {
       if (allowPartialResults) {
         thumbnail = '';
@@ -802,101 +619,25 @@ export async function scrapeProductDetails(url, options = {}) {
         throw new Error('Failed to extract product image');
       }
     } else {
-      // Ensure thumbnail URL is absolute
-      if (!thumbnail.startsWith('http')) {
-        thumbnail = new URL(thumbnail, urlObj.origin).toString();
-      }
+      thumbnail = resolveImageUrl(thumbnail, baseUrl);
     }
 
-    // Try to extract description if available
+    // Extract description
     let description = '';
-    try {
-      if (structuredData?.description) {
-        description = structuredData.description;
-      } else {
-        const metaDescription = $('meta[property="og:description"]').attr('content') ||
-                              $('meta[name="description"]').attr('content');
-        if (metaDescription) {
-          description = metaDescription;
-        }
+    if (structuredData?.description) {
+      description = structuredData.description;
+    } else {
+      const metaDescription = $('meta[property="og:description"]').attr('content') ||
+        $('meta[name="description"]').attr('content') ||
+        $('meta[name="og:description"]').attr('content');
+      if (metaDescription) {
+        description = metaDescription.trim();
       }
-    } catch (e) {
-      // Ignore description errors
-    }
-    
-    // Extract additional metadata for games
-    let additionalMetadata = {};
-    try {
-      const isGamingSite = [
-        'steam', 'epicgames', 'gog', 'nintendo', 'playstation', 'xbox', 
-        'humblebundle', 'greenmangaming', 'fanatical', 'cdkeys', 'gamersgate'
-      ].some(site => domain.includes(site));
-      
-      if (isGamingSite) {
-        // Try to extract game-specific metadata
-        const gameMetadata = {};
-        
-        // Extract from structured data first
-        if (structuredData) {
-          // Game genre
-          if (structuredData.genre) {
-            gameMetadata.genre = Array.isArray(structuredData.genre) 
-              ? structuredData.genre.join(', ') 
-              : structuredData.genre;
-          }
-          
-          // Game platform
-          if (structuredData.gamePlatform) {
-            gameMetadata.platform = Array.isArray(structuredData.gamePlatform) 
-              ? structuredData.gamePlatform.join(', ') 
-              : structuredData.gamePlatform;
-          } else if (structuredData.operatingSystem) {
-            gameMetadata.platform = Array.isArray(structuredData.operatingSystem) 
-              ? structuredData.operatingSystem.join(', ') 
-              : structuredData.operatingSystem;
-          }
-          
-          // Publisher
-          if (structuredData.publisher) {
-            if (Array.isArray(structuredData.publisher)) {
-              gameMetadata.publisher = structuredData.publisher.map(p => p.name || p).join(', ');
-            } else if (typeof structuredData.publisher === 'object') {
-              gameMetadata.publisher = structuredData.publisher.name || '';
-            } else {
-              gameMetadata.publisher = structuredData.publisher;
-            }
-          }
-          
-          // Developer
-          if (structuredData.author) {
-            if (Array.isArray(structuredData.author)) {
-              gameMetadata.developer = structuredData.author.map(a => a.name || a).join(', ');
-            } else if (typeof structuredData.author === 'object') {
-              gameMetadata.developer = structuredData.author.name || '';
-            } else {
-              gameMetadata.developer = structuredData.author;
-            }
-          }
-          
-          // Release date
-          if (structuredData.datePublished) {
-            gameMetadata.releaseDate = structuredData.datePublished;
-          }
-        }
-        
-        // If we found any game metadata, add it to the additional metadata
-        if (Object.keys(gameMetadata).length > 0) {
-          additionalMetadata = { gameMetadata };
-        }
-      }
-    } catch (e) {
-      // Ignore game metadata extraction errors
     }
 
-    // Return the scraped data with status information
-    updateStatus('Finalizing product data...', 'info');
-    
-    const productData = {
+    updateStatus('Product data extraction completed', 'success');
+
+    return {
       name,
       price,
       thumbnail,
@@ -904,47 +645,33 @@ export async function scrapeProductDetails(url, options = {}) {
       site: domain,
       scrapedAt: new Date().toISOString(),
       url,
-      ...additionalMetadata, // Include any additional metadata (like game info)
       scrapingStatus: {
         isComplete,
         warnings,
         siteSupported: !!siteConfig
       }
     };
-    
-    updateStatus('Product data ready', 'success');
-    return productData;
+
   } catch (error) {
-    // Handle specific error cases
-    if (error.code === 'ECONNABORTED') {
-      throw new Error('Request timed out. The website might be slow or blocking our requests.');
-    } else if (error.code === 'ENOTFOUND') {
-      throw new Error('Domain not found. Please check the URL and try again.');
-    }
-    
-    // Rethrow the original error with more context
-    logger.error('Scraping error:', error);
+    logger.error('Enhanced scraping error:', error);
     throw error;
   }
 }
 
 /**
- * Detect if a URL is likely to be a product page
- * @param {string} url - URL to check
- * @returns {boolean} - True if URL is likely a product page
+ * Enhanced URL validation for product pages
  */
 export function isLikelyProductUrl(url) {
   try {
     const urlObj = new URL(url);
     const path = urlObj.pathname;
     const domain = urlObj.hostname.replace('www.', '');
-    
+
     // Check if domain is in our supported sites
     const isSupportedSite = Object.keys(siteSpecificSelectors).some(key => domain.includes(key));
-    
-    // Common patterns in product URLs
+
+    // Enhanced product URL patterns
     const productPatterns = [
-      // General e-commerce patterns
       /\/product\//i,
       /\/dp\//i,
       /\/item\//i,
@@ -954,52 +681,34 @@ export function isLikelyProductUrl(url) {
       /\/p\//i,
       /\/buy\//i,
       /\/detail\//i,
-      
-      // Gaming-specific patterns
-      /\/app\//i,         // Steam
-      /\/game\//i,        // GOG, Epic, many others
-      /\/games\//i,       // Xbox, PlayStation
-      /\/store\/products\//i, // Nintendo
-      /\/store\/games\//i,    // Various
-      /\/en-us\/games\//i,    // Xbox
-      /\/en-us\/product\//i   // PlayStation
+      // Gaming-specific patterns (only Steam and Epic)
+      /\/app\//i, // Steam
+      /\/bundles\//i, // Steam bundles
+      /\/game\//i, // Epic Games
+      /\/product\//i // Epic Games
     ];
-    
-    // Check if URL path matches any product patterns
+
     const matchesPattern = productPatterns.some(pattern => pattern.test(path));
-    
-    // Check for product IDs in the path
     const hasProductId = /\/[A-Z0-9]{5,}(?:\/|$)/.test(path);
+
+    // Special handling for gaming sites (only Steam and Epic)
+    const isGamingSite = ['steam', 'epicgames'].some(site => domain.includes(site));
     
-    // Special case for gaming platforms
-    const isGamingSite = [
-      'steam', 'epicgames', 'gog', 'nintendo', 'playstation', 'xbox', 
-      'humblebundle', 'greenmangaming', 'fanatical', 'cdkeys', 'gamersgate'
-    ].some(site => domain.includes(site));
-    
-    // Gaming sites often have specific patterns
     if (isGamingSite) {
-      // Additional checks for gaming sites
       const gamingPatterns = [
-        /\/app\/\d+/i,    // Steam app ID
-        /\/game\//i,      // Common game page pattern
-        /\/games\/store\//i, // Xbox store
-        /\/product\//i    // PlayStation store
+        /\/app\/\d+/i, // Steam app ID
+        /\/bundles\/\d+/i, // Steam bundles
+        /\/product\//i // Epic Games
       ];
-      
-      const matchesGamingPattern = gamingPatterns.some(pattern => pattern.test(path));
-      
-      if (matchesGamingPattern) {
+      if (gamingPatterns.some(pattern => pattern.test(path))) {
         return true;
       }
     }
-    
-    // If it's a supported site, be more lenient
+
     if (isSupportedSite) {
       return matchesPattern || hasProductId || path.split('/').length > 2;
     }
-    
-    // For unsupported sites, be more strict
+
     return matchesPattern || hasProductId;
   } catch (e) {
     return false;
@@ -1007,28 +716,20 @@ export function isLikelyProductUrl(url) {
 }
 
 /**
- * Scrape multiple product URLs in parallel with rate limiting
- * @param {string[]} urls - Array of URLs to scrape
- * @param {Object} options - Scraping options
- * @param {number} options.concurrency - Number of concurrent requests (default: 2)
- * @param {number} options.delayBetweenRequests - Delay between requests in ms (default: 1000)
- * @returns {Promise<Object[]>} - Array of scraped product details
+ * Enhanced batch scraping with better concurrency control
  */
 export async function batchScrapeProducts(urls, options = {}) {
-  // Default options
   const {
     concurrency = 2,
-    delayBetweenRequests = 1000,
+    delayBetweenRequests = 2000, // Increased delay
     allowPartialResults = true,
-    timeout = 20000
+    timeout = 25000
   } = options;
-  
-  // Validate input
+
   if (!Array.isArray(urls)) {
     throw new Error('URLs must be an array');
   }
-  
-  // Filter out invalid URLs
+
   const validUrls = urls.filter(url => {
     try {
       new URL(url);
@@ -1037,30 +738,25 @@ export async function batchScrapeProducts(urls, options = {}) {
       return false;
     }
   });
-  
+
   if (validUrls.length === 0) {
     return [];
   }
-  
-  // Results array
+
   const results = [];
-  
-  // Process URLs in batches to control concurrency
+
   for (let i = 0; i < validUrls.length; i += concurrency) {
     const batch = validUrls.slice(i, i + concurrency);
     
-    // Process batch in parallel
     const batchPromises = batch.map(async (url, index) => {
-      // Add delay for each request except the first one in the batch
       if (index > 0) {
         await new Promise(resolve => setTimeout(resolve, delayBetweenRequests * index));
       }
-      
+
       try {
         return await scrapeProductDetails(url, { allowPartialResults, timeout });
       } catch (error) {
         logger.error(`Error scraping ${url}:`, error);
-        // Return error result
         return {
           url,
           error: error.message,
@@ -1072,94 +768,14 @@ export async function batchScrapeProducts(urls, options = {}) {
         };
       }
     });
-    
-    // Wait for all requests in this batch to complete
+
     const batchResults = await Promise.all(batchPromises);
     results.push(...batchResults);
-    
-    // Add delay between batches if there are more URLs to process
+
     if (i + concurrency < validUrls.length) {
-      await new Promise(resolve => setTimeout(resolve, delayBetweenRequests * concurrency));
+      await new Promise(resolve => setTimeout(resolve, delayBetweenRequests));
     }
   }
-  
+
   return results;
 }
-
-/**
- * Usage examples:
- * 
- * 1. Basic scraping:
- * ```
- * import { scrapeProductDetails } from './lib/scraper';
- * 
- * const details = await scrapeProductDetails('https://www.amazon.com/dp/B09JQSLL92/');
- * console.log(details);
- * ```
- * 
- * 2. Scraping with options:
- * ```
- * const details = await scrapeProductDetails(url, {
- *   allowPartialResults: true,
- *   timeout: 20000
- * });
- * ```
- * 
- * 3. Batch scraping:
- * ```
- * import { batchScrapeProducts } from './lib/scraper';
- * 
- * const urls = [
- *   'https://www.amazon.com/dp/B09JQSLL92/',
- *   'https://www.bestbuy.com/site/apple-airpods-pro-2nd-generation-white/4900964.p'
- * ];
- * 
- * const results = await batchScrapeProducts(urls, {
- *   concurrency: 2,
- *   delayBetweenRequests: 1000
- * });
- * ```
- * 
- * 4. URL validation:
- * ```
- * import { isLikelyProductUrl } from './lib/scraper';
- * 
- * const isValid = isLikelyProductUrl('https://www.amazon.com/dp/B09JQSLL92/');
- * // Returns true
- * ```
- */
-
-// Examples of supported URLs:
-const exampleUrls = [
-  // Major marketplaces
-  'https://www.amazon.com/Apple-MacBook-16-inch-10%E2%80%91core-16%E2%80%91core/dp/B09JQSLL92/',
-  'https://www.bestbuy.com/site/apple-airpods-pro-2nd-generation-white/4900964.p',
-  'https://www.walmart.com/ip/PlayStation-5-Console-Marvel-s-Spider-Man-2-Bundle/1497306699',
-  'https://www.target.com/p/nintendo-switch-oled-model-with-white-joy-con/-/A-84616123',
-  'https://www.newegg.com/p/N82E16824012018',
-  'https://www.ebay.com/itm/266555901427',
-  
-  // Fashion and apparel
-  'https://www.zara.com/us/en/oversized-blazer-p02753154.html',
-  'https://www.asos.com/us/nike/nike-club-fleece-joggers-in-black/prd/202695188',
-  'https://www.hm.com/us/product/0970817001',
-  
-  // Electronics brands
-  'https://www.apple.com/shop/buy-ipad/ipad-pro',
-  'https://www.samsung.com/us/smartphones/galaxy-s23-ultra/buy/',
-  'https://www.dell.com/en-us/shop/dell-laptops/xps-13-laptop/spd/xps-13-9315-laptop',
-  
-  // Gaming platforms and stores
-  'https://store.steampowered.com/app/1551360/Baldurs_Gate_3/',
-  'https://store.epicgames.com/en-US/p/alan-wake-2',
-  'https://www.gog.com/en/game/cyberpunk_2077',
-  'https://www.nintendo.com/us/store/products/the-legend-of-zelda-tears-of-the-kingdom-switch/',
-  'https://store.playstation.com/en-us/product/UP9000-PPSA08329_00-GHOSTOFTSUSHIMA2',
-  'https://www.xbox.com/en-us/games/store/starfield/9c2gqt9j9552',
-  'https://www.humblebundle.com/store/hollow-knight',
-  'https://www.greenmangaming.com/games/elden-ring-pc/',
-  'https://www.fanatical.com/en/game/stardew-valley',
-  'https://www.cdkeys.com/pc/games/minecraft-java-edition-pc',
-  
-  // And many more e-commerce sites supported
-];

@@ -33,16 +33,6 @@ export const SITE_CATEGORIES = {
   },
   'Gaming': {
     steam: 'Steam',
-    epicgames: 'Epic Games Store',
-    gog: 'GOG',
-    nintendo: 'Nintendo Store',
-    playstation: 'PlayStation Store',
-    xbox: 'Xbox Store',
-    humblebundle: 'Humble Bundle',
-    greenmangaming: 'Green Man Gaming',
-    fanatical: 'Fanatical',
-    cdkeys: 'CDKeys',
-    gamersgate: 'GamersGate',
-    gamestheshop: 'Games The Shop'
+    epicgames: 'Epic Games Store'
   }
 };
