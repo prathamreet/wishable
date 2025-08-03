@@ -127,16 +127,32 @@ export default function ProfilePage() {
                 </svg>
               </Link>
               
-              <div className="bg-white/10 dark:bg-gray-700/30 backdrop-blur-sm border border-white/20 dark:border-gray-600/30 px-4 py-3 rounded-xl">
-                <div className="flex items-center gap-2 text-indigo-100 dark:text-gray-300">
+              {/* Clickable Public Profile Link */}
+              <Link 
+                href={`/profile/${userProfile.slug || userProfile.username}`}
+                target="_blank"
+                className="group bg-white/10 dark:bg-gray-700/30 hover:bg-white/20 dark:hover:bg-gray-600/40 backdrop-blur-sm border border-white/20 dark:border-gray-600/30 px-4 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                <div className="flex items-center gap-2 text-indigo-100 dark:text-gray-300 group-hover:text-white dark:group-hover:text-gray-100">
                   <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                  <span className="text-sm font-medium">Public Profile</span>
+                  <span className="text-sm font-medium">View Public Profile</span>
+                  <svg
+                    className="w-3 h-3 group-hover:translate-x-0.5 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                    />
+                  </svg>
                 </div>
-              </div>
+              </Link>
             </div>
           </div>
-          
-         
         </div>
 
         {/* Profile Content */}
