@@ -64,6 +64,9 @@ export default function WishlistItem({ item, onDelete, isFirst = false }) {
         } else {
           throw new Error('Item has no valid ID');
         }
+      } catch (error) {
+        console.error('Error deleting item:', error);
+        alert('Failed to delete item. Please try again.');
       } finally {
         setIsDeleting(false);
       }
@@ -71,18 +74,20 @@ export default function WishlistItem({ item, onDelete, isFirst = false }) {
   };
 
   return (
-    <li className="relative bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-gray-200 dark:border-gray-700">
-      <div className="absolute top-0 right-0 m-2 z-10">
+    <li className="relative bg-white/10 dark:bg-gray-800/50 backdrop-blur-md border border-white/20 dark:border-gray-600/30 rounded-xl shadow-xl hover:shadow-2xl hover:bg-white/15 dark:hover:bg-gray-700/50 transition-all duration-300 transform hover:scale-102 overflow-hidden group">
+      
+      {/* Delete Button - Always Visible */}
+      <div className="absolute top-3 right-3 z-20">
         <button
           onClick={handleDelete}
           disabled={isDeleting}
-          className="p-1.5 bg-white dark:bg-gray-700 rounded-full shadow hover:bg-red-50 dark:hover:bg-red-900 transition-colors"
+          className="p-2 bg-red-500/80 dark:bg-red-500/70 backdrop-blur-sm rounded-full shadow-lg hover:bg-red-500 dark:hover:bg-red-500/90 transition-all duration-300 border border-red-400/50 dark:border-red-400/60 transform hover:scale-105 cursor-pointer"
           title="Remove from wishlist"
         >
           {isDeleting ? (
-            <span className="block w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
           ) : (
-            <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           )}
@@ -90,56 +95,72 @@ export default function WishlistItem({ item, onDelete, isFirst = false }) {
       </div>
 
       <div className="flex flex-col h-full">
-        <div className="relative h-48 bg-gray-100 dark:bg-gray-900">
+        {/* Image Section */}
+        <div className="relative h-48 bg-gradient-to-br from-white/10 to-white/5 dark:from-gray-700/30 dark:to-gray-800/30 overflow-hidden">
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent z-10"></div>
+          
           <OptimizedImage
             src={item.thumbnail}
             alt={item.name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-contain"
+            className="object-contain group-hover:scale-105 transition-transform duration-500"
             onError={() => setImageError(true)}
             priority={isFirst}
           />
+          
+          {/* Site Badge */}
+          <div className="absolute top-3 left-3 z-10">
+            <div className="bg-white/20 dark:bg-gray-800/50 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-lg px-2 py-1 flex items-center gap-1.5">
+              <span className="text-sm" title={item.site}>
+                {siteStyle.icon}
+              </span>
+              <span 
+                className="text-xs font-medium text-white dark:text-gray-200"
+                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+              >
+                {item.site.replace(/\..+$/, '')}
+              </span>
+            </div>
+          </div>
         </div>
 
-        <div className="p-4 flex flex-col flex-grow">
-          <div className="flex items-center gap-2 mb-2">
-            <span 
-              className="text-lg"
-              title={item.site}
-            >
-              {siteStyle.icon}
-            </span>
-            <span 
-              className="text-sm font-medium truncate"
-              style={{ color: siteStyle.color }}
-            >
-              {item.site.replace(/\..+$/, '')}
-            </span>
-          </div>
-
-          <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2 line-clamp-2">
+        {/* Content Section */}
+        <div className="p-4 flex flex-col flex-grow space-y-3">
+          {/* Product Name */}
+          <h3 className="font-semibold text-white dark:text-gray-200 text-sm leading-tight line-clamp-2 group-hover:text-indigo-100 dark:group-hover:text-gray-100 transition-colors duration-300">
             {item.name}
           </h3>
 
-          <div className="mt-auto">
-            <div className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
-              {formatPrice(item.price)}
+          {/* Price and Actions */}
+          <div className="mt-auto space-y-3">
+            {/* Price */}
+            <div className="bg-white/10 dark:bg-gray-700/30 backdrop-blur-sm border border-white/20 dark:border-gray-600/30 rounded-lg p-2">
+              <div className="text-lg font-bold bg-gradient-to-r from-green-300 to-green-400 dark:from-green-400 dark:to-green-300 bg-clip-text text-transparent">
+                {formatPrice(item.price)}
+              </div>
             </div>
             
-            <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-              <time dateTime={item.scrapedAt} title="Last updated">
-                {formatDate(item.scrapedAt)}
-              </time>
+            {/* Bottom Section */}
+            <div className="flex items-center justify-between">
+              {/* Date */}
+              <div className="flex items-center gap-1 text-xs text-indigo-200 dark:text-gray-400">
+                <span className="w-2 h-2 bg-indigo-400/60 rounded-full"></span>
+                <time dateTime={item.scrapedAt} title="Last updated">
+                  {formatDate(item.scrapedAt)}
+                </time>
+              </div>
               
+              {/* View Link */}
               <a
                 href={item.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                className="group/link bg-white/20 dark:bg-gray-700/50 hover:bg-white/30 dark:hover:bg-gray-600/50 backdrop-blur-sm text-white dark:text-gray-200 px-3 py-1.5 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 border border-white/20 dark:border-gray-600/30 flex items-center gap-1.5 text-xs shadow-lg"
               >
-                View
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span>View</span>
+                <svg className="w-3 h-3 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
               </a>
@@ -147,6 +168,9 @@ export default function WishlistItem({ item, onDelete, isFirst = false }) {
           </div>
         </div>
       </div>
+
+      {/* Hover Glow Effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-xl"></div>
     </li>
   );
 }

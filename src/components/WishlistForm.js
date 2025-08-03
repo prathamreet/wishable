@@ -1,17 +1,9 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
-import { SITE_CATEGORIES } from '../lib/siteCategories';
-
-// Convert SITE_CATEGORIES to the format needed for the form
-const SUPPORTED_SITES = Object.entries(SITE_CATEGORIES).reduce((acc, [category, sites]) => {
-  acc[category] = Object.values(sites);
-  return acc;
-}, {});
 
 export default function WishlistForm({ onAdd, isLoading }) {
   const [url, setUrl] = useState('');
   const [error, setError] = useState('');
-  const [showSites, setShowSites] = useState(false);
   const [scrapingStatus, setScrapingStatus] = useState('');
   const [scrapingLogs, setScrapingLogs] = useState([]);
   const [showDetailedStatus, setShowDetailedStatus] = useState(false);
@@ -101,7 +93,6 @@ export default function WishlistForm({ onAdd, isLoading }) {
       // Clear form after successful addition
       setTimeout(() => {
         setUrl('');
-        setShowSites(false);
         setScrapingStatus('');
         addScrapingLog('Product successfully added to your wishlist!', 'success');
       }, 3500);
@@ -148,123 +139,75 @@ export default function WishlistForm({ onAdd, isLoading }) {
   };
   
   return (
-    <div className="mb-8">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-        <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">
-          Add to Wishlist
-        </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          Paste a product URL from any supported site, including gaming platforms like Steam, Epic Games, PlayStation Store, and more!
-        </p>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <div className="relative">
-              <input
-                type="text"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                onFocus={() => setShowSites(true)}
-                placeholder="Paste product URL from any supported site"
-                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                disabled={isLoading}
-              />
-              
-              <button
-                type="button"
-                onClick={() => setShowSites(!showSites)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                title={showSites ? 'Hide supported sites' : 'Show supported sites'}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                    d={showSites 
-                      ? "M19 9l-7 7-7-7"
-                      : "M9 5l7 7-7 7"} 
-                  />
-                </svg>
-              </button>
+    <div className="space-y-6">
+      {/* Main Form */}
+      <div className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* URL Input */}
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-white dark:text-gray-200">
+                Product URL
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="Paste any product URL from supported sites..."
+                  className="w-full px-4 py-3 bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border border-white/20 dark:border-gray-600/30 rounded-lg text-gray-800 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400 focus:border-white dark:focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20 dark:focus:ring-gray-400/20 transition-all duration-300"
+                  disabled={isLoading}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <div className="w-6 h-6 bg-gradient-to-r from-green-400/80 to-blue-500/80 dark:from-green-400/60 dark:to-blue-500/60 rounded-full flex items-center justify-center">
+                    <span className="text-xs">🔗</span>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-indigo-100 dark:text-gray-400">
+                Paste a direct link to any product from Amazon, Steam, or other supported stores
+              </p>
             </div>
             
             {error && (
-              <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-                {error}
-              </p>
+              <div className="bg-red-400/20 dark:bg-red-500/20 border border-red-400/30 dark:border-red-500/30 text-red-200 dark:text-red-300 px-4 py-3 rounded-lg backdrop-blur-sm">
+                <div className="flex items-center gap-2">
+                  <span>⚠️</span>
+                  {error}
+                </div>
+              </div>
             )}
             
             {scrapingStatus && !error && (
-              <p className="mt-2 text-sm text-blue-600 dark:text-blue-400 flex items-center">
-                <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                {scrapingStatus}
-              </p>
+              <div className="bg-blue-400/20 dark:bg-blue-500/20 border border-blue-400/30 dark:border-blue-500/30 text-blue-200 dark:text-blue-300 px-4 py-3 rounded-lg backdrop-blur-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-blue-300 border-t-transparent rounded-full animate-spin"></div>
+                  {scrapingStatus}
+                </div>
+              </div>
             )}
           </div>
           
-          {/* Terminal-like scraping log display */}
-          {showDetailedStatus && scrapingLogs.length > 0 && (
-            <div className="bg-gray-900 text-gray-100 rounded-md p-3 font-mono text-xs h-64 relative">
-              <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-700">
-                <div className="flex space-x-1">
-                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                </div>
-                <div className="text-gray-400 text-xs">Scraping Process Terminal</div>
-                <button 
-                  onClick={() => setShowDetailedStatus(false)}
-                  className="text-gray-400 hover:text-white"
-                  title="Close terminal"
-                >
-                  ×
-                </button>
-              </div>
-              
-              <div ref={logsContainerRef} className="space-y-1 absolute inset-x-3 bottom-3 top-12 overflow-y-auto scrollbar-hide">
-                {scrapingLogs.map((log, index) => (
-                  <div key={index} className="flex">
-                    <span className="text-gray-500 mr-2">[{log.timestamp}]</span>
-                    <span className={`
-                      ${log.type === 'error' ? 'text-red-400' : ''}
-                      ${log.type === 'success' ? 'text-green-400' : ''}
-                      ${log.type === 'info' ? 'text-blue-400' : ''}
-                      ${log.type === 'warning' ? 'text-yellow-400' : ''}
-                    `}>
-                      {log.message}
-                    </span>
-                  </div>
-                ))}
-                
-                {/* Blinking cursor effect - always at the bottom */}
-                {isLoading && (
-                  <div className="mt-1 flex items-center">
-                    <span className="text-gray-500 mr-2">[{new Date().toLocaleTimeString()}]</span>
-                    <span className="text-blue-400">Processing</span>
-                    <span className="ml-1 w-2 h-4 bg-gray-100 animate-pulse"></span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-          
+          {/* Action Buttons */}
           <div className="flex items-center gap-4 flex-wrap">
             <button
               type="submit"
-              disabled={isLoading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              disabled={isLoading || !url.trim()}
+              className="group bg-white dark:bg-gray-100 text-indigo-700 dark:text-indigo-800 hover:bg-indigo-50 dark:hover:bg-gray-200 px-6 py-3 rounded-xl font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 shadow-lg flex items-center gap-2"
             >
               {isLoading ? (
-                <span className="flex items-center gap-2">
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  Adding to Wishlist...
-                </span>
+                <>
+                  <div className="w-4 h-4 border-2 border-indigo-700 border-t-transparent rounded-full animate-spin"></div>
+                  <span>Adding to Wishlist...</span>
+                </>
               ) : (
-                'Add to Wishlist'
+                <>
+                  <span>✨</span>
+                  <span>Add to Wishlist</span>
+                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </>
               )}
             </button>
             
@@ -272,8 +215,9 @@ export default function WishlistForm({ onAdd, isLoading }) {
               <button
                 type="button"
                 onClick={() => setUrl('')}
-                className="px-3 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                className="bg-white/20 dark:bg-gray-700/50 hover:bg-white/30 dark:hover:bg-gray-600/50 backdrop-blur-sm text-white dark:text-gray-200 px-4 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 border border-white/20 dark:border-gray-600/30 flex items-center gap-2"
               >
+                <span>🗑️</span>
                 Clear
               </button>
             )}
@@ -282,44 +226,78 @@ export default function WishlistForm({ onAdd, isLoading }) {
               <button
                 type="button"
                 onClick={() => setShowDetailedStatus(!showDetailedStatus)}
-                className="px-3 py-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center"
+                className="bg-white/20 dark:bg-gray-700/50 hover:bg-white/30 dark:hover:bg-gray-600/50 backdrop-blur-sm text-white dark:text-gray-200 px-4 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 border border-white/20 dark:border-gray-600/30 flex items-center gap-2"
               >
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                    d={showDetailedStatus 
-                      ? "M19 9l-7 7-7-7" 
-                      : "M9 5l7 7-7 7"} 
-                  />
+                <span>🔍</span>
+                <span>{showDetailedStatus ? 'Hide Terminal' : 'Show Terminal'}</span>
+                <svg className={`w-4 h-4 transition-transform ${showDetailedStatus ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
-                {showDetailedStatus ? 'Hide Terminal' : 'Show Terminal'}
               </button>
             )}
           </div>
         </form>
       </div>
-      
-      {showSites && (
-        <div className="mt-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-          <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
-            Supported Sites
-          </h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {Object.entries(SUPPORTED_SITES).map(([category, sites]) => (
-              <div key={category}>
-                <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                  {category}
-                </h4>
-                <ul className="space-y-1">
-                  {sites.map(site => (
-                    <li key={site} className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-1">
-                      <span className="w-3 h-3 rounded-full bg-green-500 flex-shrink-0"></span>
-                      {site}
-                    </li>
-                  ))}
-                </ul>
+
+      {/* Enhanced Terminal Display */}
+      {showDetailedStatus && scrapingLogs.length > 0 && (
+        <div className="bg-gray-900/90 dark:bg-black/50 backdrop-blur-md border border-gray-600/30 dark:border-gray-500/30 rounded-xl shadow-2xl overflow-hidden">
+          {/* Terminal Header */}
+          <div className="bg-gray-800/90 dark:bg-gray-900/90 backdrop-blur-sm border-b border-gray-600/30 dark:border-gray-500/30 px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                </div>
+                <div className="flex items-center gap-2 text-gray-300 text-sm font-mono">
+                  <span>💻</span>
+                  <span>Scraping Process Terminal</span>
+                </div>
               </div>
-            ))}
+              <button 
+                onClick={() => setShowDetailedStatus(false)}
+                className="text-gray-400 hover:text-white transition-colors text-lg"
+                title="Close terminal"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+          
+          {/* Terminal Content */}
+          <div className="p-4">
+            <div ref={logsContainerRef} className="font-mono text-sm h-64 overflow-y-auto space-y-1 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+              {scrapingLogs.map((log, index) => (
+                <div key={index} className="flex items-start gap-2">
+                  <span className="text-gray-500 text-xs flex-shrink-0">[{log.timestamp}]</span>
+                  <span className={`flex-1 ${
+                    log.type === 'error' ? 'text-red-400' : 
+                    log.type === 'success' ? 'text-green-400' : 
+                    log.type === 'warning' ? 'text-yellow-400' : 
+                    'text-blue-400'
+                  }`}>
+                    {log.type === 'error' && '❌ '}
+                    {log.type === 'success' && '✅ '}
+                    {log.type === 'warning' && '⚠️ '}
+                    {log.type === 'info' && '🔄 '}
+                    {log.message}
+                  </span>
+                </div>
+              ))}
+              
+              {/* Animated cursor */}
+              {isLoading && (
+                <div className="flex items-start gap-2 mt-2">
+                  <span className="text-gray-500 text-xs flex-shrink-0">[{new Date().toLocaleTimeString()}]</span>
+                  <span className="text-blue-400 flex items-center gap-1">
+                    🔄 Processing
+                    <span className="w-2 h-4 bg-blue-400 animate-pulse ml-1"></span>
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

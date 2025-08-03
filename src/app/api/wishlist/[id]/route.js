@@ -290,7 +290,7 @@ export async function PATCH(req, { params }) {
 // DELETE - Remove a wishlist item
 export async function DELETE(req, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     if (!id) {
       return errorResponse('Item ID is required', 400);
     }

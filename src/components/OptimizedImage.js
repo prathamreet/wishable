@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Image from 'next/image';
+import { useState } from "react";
+import Image from "next/image";
 
 /**
  * Optimized image component that uses Next.js Image component for internal images
  * and regular img tag for external images to avoid configuration issues
  */
-export default function OptimizedImage({ 
-  src, 
-  alt, 
+export default function OptimizedImage({
+  src,
+  alt,
   fill = false,
   width,
   height,
@@ -18,17 +18,18 @@ export default function OptimizedImage({
   onError = null,
   sizes = "100vw",
   quality = 75,
-  forceProxy
+  forceProxy,
 }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  
+
   // Use placeholder if no src provided
-  const imageSrc = src && src.trim() !== '' ? src : '/images/placeholder.svg';
-  
+  const imageSrc = src && src.trim() !== "" ? src : "/images/placeholder.svg";
+
   // Check if the image is an internal image (starts with /) or an external URL
-  const isInternalImage = imageSrc.startsWith('/') || imageSrc.startsWith('data:');
-  
+  const isInternalImage =
+    imageSrc.startsWith("/") || imageSrc.startsWith("data:");
+
   // Handle image loading error
   const handleError = () => {
     console.warn(`Image failed to load: ${imageSrc}`);
@@ -36,30 +37,70 @@ export default function OptimizedImage({
     setLoading(false);
     if (onError) onError();
   };
-  
+
   // Handle image load success
   const handleLoad = () => {
     setLoading(false);
   };
-  
+
   // Common image props
   const imageProps = {
-    src: error ? '/images/placeholder.svg' : imageSrc,
+    src: error ? "/images/placeholder.svg" : imageSrc,
     alt: alt || "Product image", // Ensure alt is always provided
-    className: `${className} ${loading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`,
+    className: `${className} ${
+      loading ? "opacity-0" : "opacity-100"
+    } transition-opacity duration-500`,
     onError: handleError,
     onLoad: handleLoad,
-    style: { objectFit: 'contain' }
+    style: { objectFit: "contain" },
   };
-  
+
   return (
     <>
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-          <div className="w-8 h-8 border-4 border-gray-300 dark:border-gray-700 border-t-primary-500 dark:border-t-primary-400 rounded-full animate-spin"></div>
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-white/5 via-indigo-500/5 to-purple-500/5 dark:from-gray-800/20 dark:via-gray-700/10 dark:to-indigo-900/10 backdrop-blur-sm">
+          {/* Subtle pattern overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-pink-500/5 opacity-50"></div>
+
+          {/* Loading content */}
+          <div className="relative flex flex-col items-center gap-3">
+            {/* Enhanced spinner */}
+            <div className="relative">
+              {/* Outer glow effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-full blur-md animate-pulse"></div>
+
+              {/* Main spinner */}
+              <div className="relative w-8 h-8 border-3 border-transparent bg-gradient-to-r from-indigo-400 to-purple-500 dark:from-indigo-300 dark:to-purple-400 rounded-full animate-spin">
+                <div className="absolute inset-1 bg-white/10 dark:bg-gray-800/50 backdrop-blur-sm rounded-full"></div>
+              </div>
+            </div>
+
+            {/* Loading text */}
+            <div className="text-xs text-indigo-200 dark:text-gray-400 font-medium">
+              Loading...
+            </div>
+
+            {/* Animated dots */}
+            <div className="flex gap-1">
+              <div className="w-1 h-1 bg-indigo-400/60 dark:bg-indigo-500/60 rounded-full animate-bounce"></div>
+              <div className="w-1 h-1 bg-purple-400/60 dark:bg-purple-500/60 rounded-full animate-bounce delay-75"></div>
+              <div className="w-1 h-1 bg-indigo-400/60 dark:bg-indigo-500/60 rounded-full animate-bounce delay-150"></div>
+            </div>
+          </div>
         </div>
       )}
-      
+
+      {/* Clean Error State */}
+      {error && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg">
+          <div className="text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+              Image unavailable
+            </p>
+          </div>
+        </div>
+      )}
+
       {isInternalImage ? (
         // Use Next.js Image component for internal images
         // eslint-disable-next-line jsx-a11y/alt-text
@@ -74,10 +115,6 @@ export default function OptimizedImage({
         />
       ) : (
         // Use regular img tag for external images
-        // We're intentionally using img instead of Next.js Image here because:
-        // 1. External domains would need to be added to next.config.js
-        // 2. Some external images might not support optimization
-        // 3. We want to avoid CORS issues with external images
         // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
         <img
           {...imageProps}
@@ -86,10 +123,10 @@ export default function OptimizedImage({
           loading={priority ? "eager" : "lazy"}
           style={{
             ...imageProps.style,
-            width: fill ? '100%' : width,
-            height: fill ? '100%' : height,
-            position: fill ? 'absolute' : 'relative',
-            inset: fill ? 0 : 'auto'
+            width: fill ? "100%" : width,
+            height: fill ? "100%" : height,
+            position: fill ? "absolute" : "relative",
+            inset: fill ? 0 : "auto",
           }}
         />
       )}
