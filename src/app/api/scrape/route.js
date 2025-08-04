@@ -30,7 +30,7 @@ async function handleScrapeRequest(req) {
     }
     
     // Import scraper dynamically to reduce initial load time
-    const { scrapeProductDetails, isLikelyProductUrl } = await import('../../../lib/scraper');
+    const { scrapeProductDetails, isLikelyProductUrl } = await import('../../../scraper/index.js');
     
     // Check if URL is likely a product page
     if (!isLikelyProductUrl(url)) {
@@ -103,7 +103,7 @@ async function handleBatchScrapeRequest(req) {
     }
     
     // Import scraper dynamically to reduce initial load time
-    const { batchScrapeProducts } = await import('../../../lib/scraper');
+    const { batchScrapeProducts } = await import('../../../scraper/index.js');
     
     // Configure scraping options
     const scrapingOptions = {

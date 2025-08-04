@@ -38,7 +38,7 @@ async function handleValidateRequest(req) {
     }
     
     // Import scraper function dynamically
-    const { isLikelyProductUrl } = await import('../../../../lib/scraper');
+    const { isLikelyProductUrl } = await import('../../../../scraper/index.js');
     
     // Check if URL is likely a product page
     const isProductUrl = isLikelyProductUrl(url);

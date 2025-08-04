@@ -5,7 +5,7 @@ import WishlistItem from "./WishlistItem";
 import WishlistForm from "./WishlistForm";
 import logger from "../lib/logger";
 import { wishlist as wishlistApi } from "../lib/apiClient";
-import { SITE_CATEGORIES } from "../lib/siteCategories";
+import { SITE_CATEGORIES } from "../scraper/siteCategories";
 
 export default function Wishlist() {
   const { user } = useContext(AuthContext);

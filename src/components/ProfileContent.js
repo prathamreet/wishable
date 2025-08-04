@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import OptimizedImage from './OptimizedImage';
-import { SITE_CATEGORIES } from '../lib/siteCategories';
+import { SITE_CATEGORIES } from '../scraper/siteCategories';
 
 function ProfileWishlistItem({ item, isFirst }) {
   const [imageError, setImageError] = useState(false);
