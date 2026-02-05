@@ -93,8 +93,6 @@ const validateDatabaseName = (connectionString) => {
 
 // MongoDB connection options
 const MONGODB_OPTIONS = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
   bufferCommands: false,
   maxPoolSize: 10, // Keep a pool of connections ready
   serverSelectionTimeoutMS: 15000, // How long to try connecting before timing out (increased)
