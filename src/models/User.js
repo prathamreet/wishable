@@ -128,8 +128,8 @@ const userSchema = new mongoose.Schema({
   settings: {
     theme: {
       type: String,
-      enum: ['light', 'dark', 'system'],
-      default: 'system'
+      enum: ['dark'],
+      default: 'dark'
     },
     privacy: {
       profileVisibility: {

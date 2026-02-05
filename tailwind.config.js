@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  // Always dark mode
   darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
@@ -11,8 +12,7 @@ module.exports = {
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-        'dot-pattern': 'radial-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px)',
-        'dot-pattern-dark': 'radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px)',
+        'dot-pattern': 'radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px)',
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'sans-serif'],
@@ -57,13 +57,7 @@ module.exports = {
           900: '#78350f',
           950: '#451a03',
         },
-        light: {
-          background: '#f8fafc',
-          card: '#ffffff',
-          text: '#1e293b',
-          border: '#e2e8f0',
-          accent: '#f1f5f9',
-        },
+        // Only dark mode is used
         dark: {
           background: '#0f172a',
           card: '#1e293b',
@@ -73,8 +67,7 @@ module.exports = {
         },
       },
       boxShadow: {
-        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
-        'soft-dark': '0 2px 15px -3px rgba(0, 0, 0, 0.2), 0 10px 20px -2px rgba(0, 0, 0, 0.1)',
+        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.2), 0 10px 20px -2px rgba(0, 0, 0, 0.1)',
       },
       animation: {
         'float': 'float 6s ease-in-out infinite',

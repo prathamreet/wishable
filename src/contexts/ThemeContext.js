@@ -4,43 +4,24 @@ import { createContext, useContext, useState, useEffect } from 'react';
 const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState('light');
+  // Always use dark theme
+  const [theme, setTheme] = useState('dark');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Get saved theme from localStorage
-    const storedTheme = localStorage.getItem('theme');
+    // Always set dark theme in localStorage
+    localStorage.setItem('theme', 'dark');
     
-    // Check if user prefers dark mode at OS level
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    // Set theme based on stored preference or OS preference
-    if (storedTheme) {
-      setTheme(storedTheme);
-    } else if (prefersDark) {
-      setTheme('dark');
-    }
+    // Always apply dark theme to document
+    document.documentElement.classList.add('dark');
     
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    // Skip during SSR
-    if (!mounted) return;
-    
-    // Save theme preference to localStorage
-    localStorage.setItem('theme', theme);
-    
-    // Apply theme to document
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [theme, mounted]);
-
+  // Dummy toggle function that does nothing (to maintain API compatibility)
   const toggleTheme = () => {
-    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+    // Do nothing - we always stay in dark mode
+    return;
   };
 
   // Don't render anything until after hydration to avoid hydration mismatch
