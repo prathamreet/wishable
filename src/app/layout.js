@@ -13,7 +13,7 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "wishAble - Create & Share Wishlists from Any Online Store",
+  title: "Wishable - Create & Share Wishlists from Any Online Store",
   description:
     "Create beautiful wishlists and add products from any ecommerce site. Share your wishlist with friends and family, track prices, and never forget what you want. Works with Amazon, Flipkart, and 1000+ online stores.",
   keywords:
@@ -24,21 +24,21 @@ export const metadata = {
 };
 
 export const viewport = {
-  themeColor: "#0f172a", // Always use dark theme color
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="h-full scroll-smooth dark">
+    <html lang="en" className="h-full scroll-smooth">
       <body
-        className={`${inter.variable} antialiased transition-colors duration-300`}
+        className={`${inter.variable} antialiased`}
       >
         <ThemeProvider>
           <ToastProvider>
             <AuthProvider>
-              <div className="min-h-screen flex flex-col">
+              <div className="min-h-screen flex flex-col bg-white">
                 <Navbar />
                 <main className="flex-grow">{children}</main>
                 <Footer />

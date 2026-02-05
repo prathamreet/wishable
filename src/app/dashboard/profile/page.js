@@ -3,7 +3,6 @@ import { useState, useEffect, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { AuthContext } from "../../../contexts/AuthContext";
 import Image from "next/image";
-import Link from "next/link";
 import LoadingSpinner from "../../../components/LoadingSpinner";
 import logger from "../../../lib/logger";
 import { apiFetch } from "../../../lib/apiUtils";
@@ -27,12 +26,10 @@ export default function ProfileDashboard() {
   const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
-    // Wait for auth state to be determined
     if (authLoading) {
       return;
     }
 
-    // If not authenticated, redirect to login
     if (!user || !user.token) {
       router.replace("/login?redirect=/dashboard/profile");
       return;
@@ -43,7 +40,6 @@ export default function ProfileDashboard() {
         setLoading(true);
         const token = user.token;
 
-        // Make API request with proper cache control
         const data = await apiFetch("/api/user/profile", {
           method: "GET",
           headers: {
@@ -58,7 +54,6 @@ export default function ProfileDashboard() {
       } catch (err) {
         logger.error("Error fetching profile:", err);
         if (err.status === 401) {
-          // Handle token expiration - completely clear auth state
           setError("Your session has expired. Please log in again.");
           router.replace("/login?redirect=/dashboard/profile");
           return;
@@ -120,9 +115,7 @@ export default function ProfileDashboard() {
       const token = user?.token;
       if (!token) throw new Error("Not authenticated");
 
-      // Check if email changed
       if (profile.email !== user.email) {
-        // Simple email format validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(profile.email)) {
           setError("Please enter a valid email address");
@@ -131,7 +124,6 @@ export default function ProfileDashboard() {
         }
       }
 
-      // Check if username changed and confirm before proceeding
       if (profile.username !== user.username) {
         const confirmChange = window.confirm(
           "Changing your username will also change your profile URL. Continue?"
@@ -142,7 +134,7 @@ export default function ProfileDashboard() {
         }
       }
 
-      const data = await apiFetch("/api/user/profile", {
+      await apiFetch("/api/user/profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -153,13 +145,11 @@ export default function ProfileDashboard() {
         body: JSON.stringify(profile),
       });
 
-      // Refresh the user context with updated data
       await refreshUserProfile();
 
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      // Don't log expected errors like username or email conflicts
       const isExpectedError =
         err.message.includes("Username is already taken") ||
         err.message.includes("URL that conflicts") ||
@@ -170,7 +160,6 @@ export default function ProfileDashboard() {
         logger.error("Error updating profile:", err);
       }
 
-      // Provide more specific error message
       if (err.message.includes("Username is already taken")) {
         setError(
           "This username is already in use. Please choose a different one."
@@ -201,16 +190,18 @@ export default function ProfileDashboard() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen hero-gradient dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 relative">
-        <div className="hero-pattern w-full h-full absolute inset-0 opacity-10 dark:opacity-5"></div>
-        <div className="max-w-4xl mx-auto p-6 pt-20 text-center relative">
-          <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-md border border-red-200/20 dark:border-red-500/20 p-6 rounded-xl shadow-xl">
-            <div className="w-16 h-16 bg-gradient-to-r from-red-400/80 to-pink-500/80 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">⚠️</span>
-            </div>
-            <p className="text-red-200 dark:text-red-300 text-lg">
+      <div className="min-h-screen bg-white">
+        <div className="max-w-4xl mx-auto p-6 pt-20 text-center">
+          <div className="border border-red-600 bg-red-50 p-12">
+            <p className="text-red-900 text-lg mb-4">
               {error || "Failed to load profile. Please try again later."}
             </p>
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="btn-primary"
+            >
+              Go to Dashboard
+            </button>
           </div>
         </div>
       </div>
@@ -218,77 +209,57 @@ export default function ProfileDashboard() {
   }
 
   return (
-    <div className="min-h-screen hero-gradient dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 relative">
-      <div className="hero-pattern w-full h-full absolute inset-0 opacity-10 dark:opacity-5"></div>
-      
-      <div className="animate-fade-in max-w-6xl mx-auto p-6 relative">
+    <div className="min-h-screen bg-white">
+      <div className="max-w-6xl mx-auto p-6">
         {/* Header Section */}
-        <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-md border border-white/20 dark:border-gray-600/30 p-6 sm:p-8 rounded-xl shadow-xl mb-8 mt-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-500/80 to-pink-600/80 dark:from-purple-400/60 dark:to-pink-500/60 rounded-xl flex items-center justify-center">
-              <span className="text-2xl">⚙️</span>
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-indigo-100 to-purple-100 dark:from-gray-100 dark:via-indigo-200 dark:to-purple-200 bg-clip-text text-transparent">
-                Profile Settings
-              </h1>
-              <p className="text-indigo-100 dark:text-gray-300 text-sm">
-                Manage your account and personal information
-              </p>
-            </div>
+        <div className="border border-neutral-200 p-8 mb-8 mt-8">
+          <div className="mb-4">
+            <h1 className="text-3xl font-semibold tracking-tight mb-2">
+              Profile Settings
+            </h1>
+            <p className="text-neutral-600">
+              Manage your account and personal information
+            </p>
           </div>
           
-          {/* Last Updated Info */}
-          <div className="pt-4 border-t border-white/20 dark:border-gray-600/30">
-            <div className="flex items-center gap-2 text-indigo-100 dark:text-gray-400">
-              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-              <span className="text-sm">
-                Last updated: {profile.updatedAt ? new Date(profile.updatedAt).toLocaleString() : "N/A"}
-              </span>
-            </div>
+          <div className="pt-4 border-t border-neutral-200">
+            <p className="text-sm text-neutral-600">
+              Last updated: {profile.updatedAt ? new Date(profile.updatedAt).toLocaleString() : "N/A"}
+            </p>
           </div>
         </div>
 
         {/* Notification Messages */}
         {error && (
-          <div className="bg-red-400/20 dark:bg-red-500/20 border border-red-400/30 dark:border-red-500/30 text-red-200 dark:text-red-300 px-6 py-4 rounded-xl backdrop-blur-sm mb-6">
-            <div className="flex items-center gap-2">
-              <span>⚠️</span>
-              {error}
-            </div>
+          <div className="border border-red-600 bg-red-50 text-red-900 px-6 py-4 mb-6 text-sm">
+            {error}
           </div>
         )}
 
         {success && (
-          <div className="bg-green-400/20 dark:bg-green-500/20 border border-green-400/30 dark:border-green-500/30 text-green-200 dark:text-green-300 px-6 py-4 rounded-xl backdrop-blur-sm mb-6">
-            <div className="flex items-center gap-2">
-              <span>✅</span>
-              Profile updated successfully!
-            </div>
+          <div className="border border-green-600 bg-green-50 text-green-900 px-6 py-4 mb-6 text-sm">
+            Profile updated successfully!
           </div>
         )}
 
         {/* Tabs Navigation */}
-        <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-md border border-white/20 dark:border-gray-600/30 rounded-xl shadow-xl mb-8 overflow-hidden">
+        <div className="border border-neutral-200 mb-8">
           <nav className="flex">
             {[
-              { id: 'personal', label: 'Personal Information', icon: '👤' },
-              { id: 'address', label: 'Address', icon: '🏠' },
-              { id: 'security', label: 'Security', icon: '🔒' }
+              { id: 'personal', label: 'Personal Information' },
+              { id: 'address', label: 'Address' },
+              { id: 'security', label: 'Security' }
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 py-4 px-6 text-center font-medium text-sm transition-all duration-300 border-b-2 ${
+                className={`flex-1 py-4 px-6 text-center font-medium text-sm transition-all border-b-2 ${
                   activeTab === tab.id
-                    ? "border-white text-white dark:text-gray-100 bg-white/10 dark:bg-gray-700/50"
-                    : "border-transparent text-indigo-200 dark:text-gray-400 hover:text-white dark:hover:text-gray-200 hover:bg-white/5 dark:hover:bg-gray-700/30"
+                    ? "border-neutral-900 bg-neutral-50"
+                    : "border-transparent hover:bg-neutral-50"
                 }`}
               >
-                <div className="flex items-center justify-center gap-2">
-                  <span>{tab.icon}</span>
-                  <span className="hidden sm:inline">{tab.label}</span>
-                </div>
+                {tab.label}
               </button>
             ))}
           </nav>
@@ -300,21 +271,16 @@ export default function ProfileDashboard() {
           {activeTab === "personal" && (
             <div className="space-y-8">
               {/* Basic Information */}
-              <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-md border border-white/20 dark:border-gray-600/30 p-6 sm:p-8 rounded-xl shadow-xl">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-r from-blue-400/80 to-indigo-500/80 dark:from-blue-400/60 dark:to-indigo-500/60 rounded-full flex items-center justify-center">
-                    <span className="text-lg">ℹ️</span>
-                  </div>
-                  <h2 className="text-xl font-bold text-white dark:text-gray-200">Basic Information</h2>
-                </div>
+              <div className="border border-neutral-200 p-8">
+                <h2 className="text-xl font-semibold tracking-tight mb-6">Basic Information</h2>
 
                 {/* Profile Picture */}
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-white dark:text-gray-200 mb-3">
+                  <label className="form-label">
                     Profile Picture
                   </label>
                   <div className="flex items-center gap-6">
-                    <div className="relative h-24 w-24 rounded-full overflow-hidden bg-gradient-to-r from-indigo-500/80 to-purple-600/80 dark:from-indigo-400/60 dark:to-purple-500/60 shadow-xl border-4 border-white/20 dark:border-gray-600/30">
+                    <div className="relative h-24 w-24 overflow-hidden bg-neutral-950 border border-neutral-900">
                       {profile.profilePicture ? (
                         <Image
                           src={profile.profilePicture}
@@ -334,9 +300,9 @@ export default function ProfileDashboard() {
                         type="file"
                         accept="image/*"
                         onChange={handleImageUpload}
-                        className="text-sm text-indigo-100 dark:text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-white/20 file:text-white hover:file:bg-white/30 file:transition-all file:duration-300"
+                        className="text-sm file:mr-4 file:py-2 file:px-4 file:border file:border-neutral-900 file:text-sm file:font-medium file:bg-white hover:file:bg-neutral-50"
                       />
-                      <p className="text-xs text-indigo-200 dark:text-gray-400">
+                      <p className="text-xs text-neutral-600">
                         Recommended: Square image, max 1MB
                       </p>
                     </div>
@@ -346,7 +312,7 @@ export default function ProfileDashboard() {
                 {/* Form Fields */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="username" className="block text-sm font-medium text-white dark:text-gray-200 mb-2">
+                    <label htmlFor="username" className="form-label">
                       Username
                     </label>
                     <input
@@ -355,16 +321,16 @@ export default function ProfileDashboard() {
                       name="username"
                       value={profile.username || ""}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border border-white/20 dark:border-gray-600/30 rounded-lg text-gray-800 dark:text-gray-200 focus:border-white dark:focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20 dark:focus:ring-gray-400/20 transition-all duration-300"
+                      className="form-input"
                       required
                     />
-                    <p className="text-xs text-indigo-200 dark:text-gray-400 mt-1">
+                    <p className="text-xs text-neutral-600 mt-1">
                       This will change your profile URL
                     </p>
                   </div>
 
                   <div>
-                    <label htmlFor="displayName" className="block text-sm font-medium text-white dark:text-gray-200 mb-2">
+                    <label htmlFor="displayName" className="form-label">
                       Display Name
                     </label>
                     <input
@@ -373,15 +339,15 @@ export default function ProfileDashboard() {
                       name="displayName"
                       value={profile.displayName || ""}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border border-white/20 dark:border-gray-600/30 rounded-lg text-gray-800 dark:text-gray-200 focus:border-white dark:focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20 dark:focus:ring-gray-400/20 transition-all duration-300"
+                      className="form-input"
                     />
-                    <p className="text-xs text-indigo-200 dark:text-gray-400 mt-1">
+                    <p className="text-xs text-neutral-600 mt-1">
                       Shown on your profile to others
                     </p>
                   </div>
 
                   <div className="md:col-span-2">
-                    <label htmlFor="email" className="block text-sm font-medium text-white dark:text-gray-200 mb-2">
+                    <label htmlFor="email" className="form-label">
                       Email
                     </label>
                     <input
@@ -390,7 +356,7 @@ export default function ProfileDashboard() {
                       name="email"
                       value={profile.email || ""}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border border-white/20 dark:border-gray-600/30 rounded-lg text-gray-800 dark:text-gray-200 focus:border-white dark:focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20 dark:focus:ring-gray-400/20 transition-all duration-300"
+                      className="form-input"
                       required
                     />
                   </div>
@@ -398,17 +364,12 @@ export default function ProfileDashboard() {
               </div>
 
               {/* Contact Details */}
-              <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-md border border-white/20 dark:border-gray-600/30 p-6 sm:p-8 rounded-xl shadow-xl">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-r from-green-400/80 to-blue-500/80 dark:from-green-400/60 dark:to-blue-500/60 rounded-full flex items-center justify-center">
-                    <span className="text-lg">📞</span>
-                  </div>
-                  <h2 className="text-xl font-bold text-white dark:text-gray-200">Contact Details</h2>
-                </div>
+              <div className="border border-neutral-200 p-8">
+                <h2 className="text-xl font-semibold tracking-tight mb-6">Contact Details</h2>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="contactDetails.phone" className="block text-sm font-medium text-white dark:text-gray-200 mb-2">
+                    <label htmlFor="contactDetails.phone" className="form-label">
                       Phone Number
                     </label>
                     <input
@@ -417,12 +378,12 @@ export default function ProfileDashboard() {
                       name="contactDetails.phone"
                       value={profile.contactDetails?.phone || ""}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border border-white/20 dark:border-gray-600/30 rounded-lg text-gray-800 dark:text-gray-200 focus:border-white dark:focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20 dark:focus:ring-gray-400/20 transition-all duration-300"
+                      className="form-input"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="contactDetails.alternateEmail" className="block text-sm font-medium text-white dark:text-gray-200 mb-2">
+                    <label htmlFor="contactDetails.alternateEmail" className="form-label">
                       Alternate Email
                     </label>
                     <input
@@ -431,7 +392,7 @@ export default function ProfileDashboard() {
                       name="contactDetails.alternateEmail"
                       value={profile.contactDetails?.alternateEmail || ""}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border border-white/20 dark:border-gray-600/30 rounded-lg text-gray-800 dark:text-gray-200 focus:border-white dark:focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20 dark:focus:ring-gray-400/20 transition-all duration-300"
+                      className="form-input"
                     />
                   </div>
                 </div>
@@ -441,17 +402,12 @@ export default function ProfileDashboard() {
 
           {/* Address Tab */}
           {activeTab === "address" && (
-            <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-md border border-white/20 dark:border-gray-600/30 p-6 sm:p-8 rounded-xl shadow-xl">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-r from-yellow-400/80 to-orange-500/80 dark:from-yellow-400/60 dark:to-orange-500/60 rounded-full flex items-center justify-center">
-                  <span className="text-lg">🏠</span>
-                </div>
-                <h2 className="text-xl font-bold text-white dark:text-gray-200">Delivery Address</h2>
-              </div>
+            <div className="border border-neutral-200 p-8">
+              <h2 className="text-xl font-semibold tracking-tight mb-6">Delivery Address</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
-                  <label htmlFor="address.street" className="block text-sm font-medium text-white dark:text-gray-200 mb-2">
+                  <label htmlFor="address.street" className="form-label">
                     Street Address
                   </label>
                   <input
@@ -460,12 +416,12 @@ export default function ProfileDashboard() {
                     name="address.street"
                     value={profile.address?.street || ""}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border border-white/20 dark:border-gray-600/30 rounded-lg text-gray-800 dark:text-gray-200 focus:border-white dark:focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20 dark:focus:ring-gray-400/20 transition-all duration-300"
+                    className="form-input"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="address.city" className="block text-sm font-medium text-white dark:text-gray-200 mb-2">
+                  <label htmlFor="address.city" className="form-label">
                     City
                   </label>
                   <input
@@ -474,12 +430,12 @@ export default function ProfileDashboard() {
                     name="address.city"
                     value={profile.address?.city || ""}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border border-white/20 dark:border-gray-600/30 rounded-lg text-gray-800 dark:text-gray-200 focus:border-white dark:focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20 dark:focus:ring-gray-400/20 transition-all duration-300"
+                    className="form-input"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="address.state" className="block text-sm font-medium text-white dark:text-gray-200 mb-2">
+                  <label htmlFor="address.state" className="form-label">
                     State
                   </label>
                   <input
@@ -488,12 +444,12 @@ export default function ProfileDashboard() {
                     name="address.state"
                     value={profile.address?.state || ""}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border border-white/20 dark:border-gray-600/30 rounded-lg text-gray-800 dark:text-gray-200 focus:border-white dark:focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20 dark:focus:ring-gray-400/20 transition-all duration-300"
+                    className="form-input"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="address.postalCode" className="block text-sm font-medium text-white dark:text-gray-200 mb-2">
+                  <label htmlFor="address.postalCode" className="form-label">
                     Postal Code
                   </label>
                   <input
@@ -502,12 +458,12 @@ export default function ProfileDashboard() {
                     name="address.postalCode"
                     value={profile.address?.postalCode || ""}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border border-white/20 dark:border-gray-600/30 rounded-lg text-gray-800 dark:text-gray-200 focus:border-white dark:focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20 dark:focus:ring-gray-400/20 transition-all duration-300"
+                    className="form-input"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="address.country" className="block text-sm font-medium text-white dark:text-gray-200 mb-2">
+                  <label htmlFor="address.country" className="form-label">
                     Country
                   </label>
                   <input
@@ -516,7 +472,7 @@ export default function ProfileDashboard() {
                     name="address.country"
                     value={profile.address?.country || ""}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border border-white/20 dark:border-gray-600/30 rounded-lg text-gray-800 dark:text-gray-200 focus:border-white dark:focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20 dark:focus:ring-gray-400/20 transition-all duration-300"
+                    className="form-input"
                   />
                 </div>
               </div>
@@ -527,54 +483,47 @@ export default function ProfileDashboard() {
           {activeTab === "security" && (
             <div className="space-y-8">
               {/* Account Security */}
-              <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-md border border-white/20 dark:border-gray-600/30 p-6 sm:p-8 rounded-xl shadow-xl">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-r from-purple-400/80 to-blue-500/80 dark:from-purple-400/60 dark:to-blue-500/60 rounded-full flex items-center justify-center">
-                    <span className="text-lg">🔒</span>
-                  </div>
-                  <h2 className="text-xl font-bold text-white dark:text-gray-200">Account Security</h2>
-                </div>
+              <div className="border border-neutral-200 p-8">
+                <h2 className="text-xl font-semibold tracking-tight mb-6">Account Security</h2>
 
-                <div className="bg-blue-400/20 dark:bg-blue-500/20 border border-blue-400/30 dark:border-blue-500/30 text-blue-200 dark:text-blue-300 px-4 py-3 rounded-lg backdrop-blur-sm mb-6">
-                  <p className="text-sm">
-                    Password changes and advanced security settings will be implemented in a future update.
-                  </p>
+                <div className="border border-blue-600 bg-blue-50 text-blue-900 px-4 py-3 mb-6 text-sm">
+                  Password changes and advanced security settings will be implemented in a future update.
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="role" className="block text-sm font-medium text-white dark:text-gray-200 mb-2">
+                    <label htmlFor="role" className="form-label">
                       Account Role
                     </label>
                     <input
                       type="text"
                       id="role"
                       value={profile.role || "user"}
-                      className="w-full px-4 py-3 bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border border-white/20 dark:border-gray-600/30 rounded-lg text-gray-600 dark:text-gray-400 cursor-not-allowed"
+                      className="form-input opacity-50 cursor-not-allowed"
                       disabled
                     />
-                    <p className="text-xs text-indigo-200 dark:text-gray-400 mt-1">
+                    <p className="text-xs text-neutral-600 mt-1">
                       Your account permissions level
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-white dark:text-gray-200 mb-2">
+                    <label className="form-label">
                       Account Status
                     </label>
-                    <div className="bg-green-400/20 dark:bg-green-500/20 border border-green-400/30 dark:border-green-500/30 text-green-200 dark:text-green-300 px-4 py-3 rounded-lg backdrop-blur-sm flex items-center gap-2">
+                    <div className="border border-green-600 bg-green-50 text-green-900 px-4 py-3 flex items-center gap-2 text-sm font-medium">
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span className="font-medium">Active</span>
+                      <span>Active</span>
                     </div>
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-white dark:text-gray-200 mb-2">
+                    <label className="form-label">
                       Account Created
                     </label>
-                    <div className="bg-white/10 dark:bg-gray-700/30 backdrop-blur-sm border border-white/20 dark:border-gray-600/30 px-4 py-3 rounded-lg text-indigo-100 dark:text-gray-300">
+                    <div className="border border-neutral-200 px-4 py-3 text-neutral-600 text-sm">
                       {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString() : "N/A"}
                     </div>
                   </div>
@@ -582,24 +531,19 @@ export default function ProfileDashboard() {
               </div>
 
               {/* Delete Account Section */}
-              <div className="bg-red-400/10 dark:bg-red-500/10 backdrop-blur-md border border-red-400/30 dark:border-red-500/30 p-6 sm:p-8 rounded-xl shadow-xl">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-r from-red-500/80 to-pink-600/80 dark:from-red-400/60 dark:to-pink-500/60 rounded-full flex items-center justify-center">
-                    <span className="text-lg">🗑️</span>
-                  </div>
-                  <h2 className="text-xl font-bold text-red-200 dark:text-red-300">Delete Account</h2>
-                </div>
+              <div className="border-2 border-red-600 bg-red-50 p-8">
+                <h2 className="text-xl font-semibold text-red-900 mb-6">Delete Account</h2>
 
-                <div className="bg-red-500/20 dark:bg-red-600/20 border border-red-400/30 dark:border-red-500/30 rounded-lg p-4 mb-6 backdrop-blur-sm">
+                <div className="bg-red-100 border border-red-600 p-4 mb-6">
                   <div className="flex items-start gap-3">
-                    <svg className="h-5 w-5 text-red-300 dark:text-red-400 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                    <svg className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
                     <div>
-                      <h3 className="text-sm font-medium text-red-200 dark:text-red-300 mb-2">
+                      <h3 className="text-sm font-semibold text-red-900 mb-2">
                         Warning: This action cannot be undone
                       </h3>
-                      <p className="text-sm text-red-300 dark:text-red-400">
+                      <p className="text-sm text-red-900">
                         Deleting your account will permanently remove all your data, including your profile information and wishlist. This action cannot be reversed.
                       </p>
                     </div>
@@ -609,9 +553,8 @@ export default function ProfileDashboard() {
                 <button
                   type="button"
                   onClick={() => setShowDeleteConfirmation(true)}
-                  className="bg-red-500/80 hover:bg-red-500 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2"
+                  className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 font-medium transition-colors"
                 >
-                  <span>🗑️</span>
                   Delete Account
                 </button>
               </div>
@@ -623,22 +566,9 @@ export default function ProfileDashboard() {
             <button
               type="submit"
               disabled={saving}
-              className="group bg-white dark:bg-gray-100 text-indigo-700 dark:text-indigo-800 hover:bg-indigo-50 dark:hover:bg-gray-200 px-8 py-4 rounded-xl font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 shadow-lg flex items-center gap-2 min-w-40"
+              className="btn-primary disabled:opacity-50 min-w-40"
             >
-              {saving ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-indigo-700 border-t-transparent rounded-full animate-spin"></div>
-                  <span>Saving...</span>
-                </>
-              ) : (
-                <>
-                  <span>💾</span>
-                  <span>Save Changes</span>
-                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </>
-              )}
+              {saving ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>
@@ -646,44 +576,35 @@ export default function ProfileDashboard() {
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirmation && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity hero-gradient dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 backdrop-blur-md" onClick={() => setShowDeleteConfirmation(false)} aria-hidden="true"></div>
-
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-            <div className="inline-block px-6 pt-6 pb-6 overflow-hidden text-left align-bottom transition-all transform bg-white/10 dark:bg-gray-800/50 backdrop-blur-md border border-white/20 dark:border-gray-600/30 rounded-xl shadow-2xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <div>
-                <div className="flex items-center justify-center w-16 h-16 mx-auto bg-red-500/20 dark:bg-red-600/20 rounded-full border border-red-400/30 dark:border-red-500/30">
-                  <svg className="w-8 h-8 text-red-300 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </div>
-                <div className="mt-6 text-center">
-                  <h3 className="text-xl font-bold text-white dark:text-gray-200 mb-3">
-                    Are you sure you want to delete your account?
-                  </h3>
-                  <p className="text-sm text-indigo-100 dark:text-gray-400">
-                    This action cannot be undone. All of your data will be permanently deleted from our servers.
-                  </p>
-                </div>
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50">
+          <div className="flex items-center justify-center min-h-screen px-4">
+            <div className="bg-white border border-neutral-900 max-w-lg w-full p-8">
+              <div className="flex items-center justify-center w-16 h-16 mx-auto bg-red-50 border border-red-600 mb-6">
+                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-semibold tracking-tight mb-3">
+                  Are you sure you want to delete your account?
+                </h3>
+                <p className="text-sm text-neutral-600">
+                  This action cannot be undone. All of your data will be permanently deleted from our servers.
+                </p>
               </div>
 
               {deleteError && (
-                <div className="mt-4 bg-red-400/20 dark:bg-red-500/20 border border-red-400/30 dark:border-red-500/30 text-red-200 dark:text-red-300 px-4 py-3 rounded-lg backdrop-blur-sm">
-                  <div className="flex items-center gap-2">
-                    <span>⚠️</span>
-                    {deleteError}
-                  </div>
+                <div className="border border-red-600 bg-red-50 text-red-900 px-4 py-3 mb-4 text-sm">
+                  {deleteError}
                 </div>
               )}
 
-              <div className="mt-6 grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   disabled={isDeleting}
                   onClick={() => setShowDeleteConfirmation(false)}
-                  className="bg-white/20 dark:bg-gray-700/50 hover:bg-white/30 dark:hover:bg-gray-600/50 backdrop-blur-sm text-white dark:text-gray-200 px-6 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 border border-white/20 dark:border-gray-600/30"
+                  className="btn-secondary"
                 >
                   Cancel
                 </button>
@@ -704,19 +625,9 @@ export default function ProfileDashboard() {
                       setIsDeleting(false);
                     }
                   }}
-                  className="bg-red-500/80 hover:bg-red-500 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
+                  className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 font-medium transition-colors disabled:opacity-50"
                 >
-                  {isDeleting ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Deleting...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>🗑️</span>
-                      <span>Delete Account</span>
-                    </>
-                  )}
+                  {isDeleting ? "Deleting..." : "Delete Account"}
                 </button>
               </div>
             </div>

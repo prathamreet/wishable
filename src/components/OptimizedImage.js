@@ -3,10 +3,6 @@
 import { useState } from "react";
 import Image from "next/image";
 
-/**
- * Optimized image component that uses Next.js Image component for internal images
- * and regular img tag for external images to avoid configuration issues
- */
 export default function OptimizedImage({
   src,
   alt,
@@ -23,14 +19,11 @@ export default function OptimizedImage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  // Use placeholder if no src provided
   const imageSrc = src && src.trim() !== "" ? src : "/images/placeholder.svg";
 
-  // Check if the image is an internal image (starts with /) or an external URL
   const isInternalImage =
     imageSrc.startsWith("/") || imageSrc.startsWith("data:");
 
-  // Handle image loading error
   const handleError = () => {
     console.warn(`Image failed to load: ${imageSrc}`);
     setError(true);
@@ -38,18 +31,16 @@ export default function OptimizedImage({
     if (onError) onError();
   };
 
-  // Handle image load success
   const handleLoad = () => {
     setLoading(false);
   };
 
-  // Common image props
   const imageProps = {
     src: error ? "/images/placeholder.svg" : imageSrc,
-    alt: alt || "Product image", // Ensure alt is always provided
+    alt: alt || "Product image",
     className: `${className} ${
       loading ? "opacity-0" : "opacity-100"
-    } transition-opacity duration-500`,
+    } transition-opacity duration-300`,
     onError: handleError,
     onLoad: handleLoad,
     style: { objectFit: "contain" },
@@ -58,43 +49,15 @@ export default function OptimizedImage({
   return (
     <>
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-white/5 via-indigo-500/5 to-purple-500/5 dark:from-gray-800/20 dark:via-gray-700/10 dark:to-indigo-900/10 backdrop-blur-sm">
-          {/* Subtle pattern overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-pink-500/5 opacity-50"></div>
-
-          {/* Loading content */}
-          <div className="relative flex flex-col items-center gap-3">
-            {/* Enhanced spinner */}
-            <div className="relative">
-              {/* Outer glow effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-full blur-md animate-pulse"></div>
-
-              {/* Main spinner */}
-              <div className="relative w-8 h-8 border-3 border-transparent bg-gradient-to-r from-indigo-400 to-purple-500 dark:from-indigo-300 dark:to-purple-400 rounded-full animate-spin">
-                <div className="absolute inset-1 bg-white/10 dark:bg-gray-800/50 backdrop-blur-sm rounded-full"></div>
-              </div>
-            </div>
-
-            {/* Loading text */}
-            <div className="text-xs text-indigo-200 dark:text-gray-400 font-medium">
-              Loading...
-            </div>
-
-            {/* Animated dots */}
-            <div className="flex gap-1">
-              <div className="w-1 h-1 bg-indigo-400/60 dark:bg-indigo-500/60 rounded-full animate-bounce"></div>
-              <div className="w-1 h-1 bg-purple-400/60 dark:bg-purple-500/60 rounded-full animate-bounce delay-75"></div>
-              <div className="w-1 h-1 bg-indigo-400/60 dark:bg-indigo-500/60 rounded-full animate-bounce delay-150"></div>
-            </div>
-          </div>
+        <div className="absolute inset-0 flex items-center justify-center bg-neutral-50">
+          <div className="w-6 h-6 border-2 border-neutral-900 border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
 
-      {/* Clean Error State */}
       {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg">
+        <div className="absolute inset-0 flex items-center justify-center bg-neutral-100">
           <div className="text-center">
-            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+            <p className="text-xs text-neutral-600">
               Image unavailable
             </p>
           </div>
@@ -102,7 +65,6 @@ export default function OptimizedImage({
       )}
 
       {isInternalImage ? (
-        // Use Next.js Image component for internal images
         // eslint-disable-next-line jsx-a11y/alt-text
         <Image
           {...imageProps}
@@ -114,7 +76,6 @@ export default function OptimizedImage({
           quality={quality}
         />
       ) : (
-        // Use regular img tag for external images
         // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
         <img
           {...imageProps}
