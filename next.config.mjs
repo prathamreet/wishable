@@ -36,29 +36,7 @@ const nextConfig = {
     ];
   },
   images: {
-    // Configure domains and patterns for both development and production
-    domains: [
-      'localhost',
-      'g.sdlcdn.com',
-      'images-na.ssl-images-amazon.com',
-      'images-eu.ssl-images-amazon.com',
-      'm.media-amazon.com',
-      'assets.myntassets.com',
-      'rukminim1.flixcart.com',
-      'rukminim2.flixcart.com',
-      'img.tatacliq.com',
-      'static-assets-web.flixcart.com',
-      'g.sdlcdn.com',
-      'images-na.ssl-images-amazon.com',
-      'images-eu.ssl-images-amazon.com',
-      'm.media-amazon.com',
-      'assets.myntassets.com',
-      'rukminim1.flixcart.com',
-      'rukminim2.flixcart.com',
-      'img.tatacliq.com',
-      'static-assets-web.flixcart.com',
-      process.env.VERCEL_URL || 'wishable.vercel.app',
-    ],
+    // Use remotePatterns instead of deprecated domains
     remotePatterns: [
       {
         protocol: 'https',
