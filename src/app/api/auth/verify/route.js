@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import connectDB from '../../../../lib/db';
 import User from '../../../../models/User';
+import logger from '../../../../lib/logger';
 import { errorResponse, successResponse } from '../../../../lib/apiUtils';
 import { withRateLimit, rateLimits } from '../../../../lib/rateLimit';
 
@@ -48,7 +49,7 @@ const handler = async (req) => {
       return errorResponse('Token expired', 401);
     }
     
-    console.error('Token verification error:', error);
+    logger.error('Token verification error:', error);
     return errorResponse('Authentication failed', 500);
   }
 };
@@ -58,7 +59,7 @@ const safeHandler = async (req, ...args) => {
   try {
     return await handler(req, ...args);
   } catch (error) {
-    console.error('Unhandled error in verify handler:', error);
+    logger.error('Unhandled error in verify handler:', error);
     return errorResponse('Authentication failed', 500);
   }
 };
