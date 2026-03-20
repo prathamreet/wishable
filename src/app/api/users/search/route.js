@@ -6,19 +6,16 @@ import { errorResponse, successResponse, cacheOptions } from '../../../../lib/ap
 export const dynamic = 'force-dynamic'; // Do not cache this route
 
 export async function GET(request) {
-  console.time('user-search-execution');
   try {
     const { searchParams } = new URL(request.url);
     const username = searchParams.get('username');
     
     if (!username) {
-      console.timeEnd('user-search-execution');
       return errorResponse('Username is required', 400);
     }
     
     // Connect to DB
     await connectDB();
-    console.timeLog('user-search-execution', 'DB connected');
     
     // Optimize query to only select necessary fields
     // First try exact match (most efficient)
@@ -42,15 +39,11 @@ export async function GET(request) {
       }
     }
     
-    console.timeLog('user-search-execution', 'Search completed');
-    
     if (!user) {
-      console.timeEnd('user-search-execution');
       return errorResponse('User not found', 404);
     }
     
     // Return minimal data to reduce payload size
-    console.timeEnd('user-search-execution');
     return successResponse({
       user: {
         username: user.username,
@@ -58,8 +51,7 @@ export async function GET(request) {
       }
     }, 200, cacheOptions.SHORT); // Cache for a short time (5 minutes)
   } catch (error) {
-    console.timeEnd('user-search-execution');
     logger.error('User search error:', error);
     return errorResponse('Server error', 500);
   }
-} 
+}
